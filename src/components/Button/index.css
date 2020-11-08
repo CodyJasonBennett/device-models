@@ -1,0 +1,79 @@
+.button {
+  border-radius: 5px;
+  background-color: rgba(var(--color-surface));
+  color: rgba(var(--color-text));
+  border: none;
+  padding: 0 16px 1px;
+  margin: 0;
+  box-shadow: inset 0 0 0 1px rgba(var(--color-text));
+  outline: none;
+  cursor: pointer;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition-property: background, color, box-shadow;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+.button:focus {
+  box-shadow: inset 0 0 0 2px rgba(var(--color-primary));
+}
+
+.button:disabled {
+  opacity: 0.2;
+  cursor: default;
+  pointer-events: none;
+}
+
+.button--icon-only {
+  padding: 0;
+  width: 30px;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.button--icon-only[aria-pressed=true] {
+  color: rgba(var(--color-primary));
+}
+
+.button--icon-only:hover {
+  background: rgba(var(--color-text), 0.1);
+}
+
+.button--icon-only:focus {
+  box-shadow: inset 0 0 0 2px rgba(var(--color-text), 0.2);
+}
+
+.button--icon-only svg {
+  display: block;
+  align-self: center;
+  justify-self: center;
+  flex: 0 0 auto;
+  position: absolute;
+}
+
+.button--primary {
+  box-shadow: none;
+  background: rgba(var(--color-primary));
+  color: white;
+}
+
+.button--primary:focus {
+  box-shadow: inset 0 0 0 2px rgba(var(--color-black), 0.3);
+}
+
+.button--grey {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.button--grey:hover {
+  background: rgba(var(--color-text), 0.1);
+}
+
+.button--grey:focus {
+  box-shadow: inset 0 0 0 2px rgba(var(--color-text), 0.2);
+}

@@ -1,0 +1,16 @@
+@keyframes spinner-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spinner-rotate 1s linear infinite;
+  transform-origin: center center;
+}
+
+.spinner__path {
+  stroke-dasharray: 100, 200;
+  stroke-dashoffset: 0;
+  stroke: currentColor;
+}
