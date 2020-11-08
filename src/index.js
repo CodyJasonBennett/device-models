@@ -9,10 +9,3 @@ if (rootElement.hasChildNodes()) {
 } else {
   render(<App />, rootElement);
 }
-
-// Event handler
-onmessage = event => {
-  const message = event.data.pluginMessage;
-
-  console.log(message);
-};

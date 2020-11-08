@@ -1,4 +1,6 @@
 import React, { createContext, useReducer, useRef, useState, useMemo, useEffect, Fragment } from 'react';
+import classNames from 'classnames';
+import { Transition } from 'react-transition-group';
 import Tooltip from 'components/Tooltip';
 import Viewport from 'components/Viewport';
 import Dropdown from 'components/Dropdown';
@@ -7,9 +9,10 @@ import Button from 'components/Button';
 import { useFormInput } from 'hooks';
 import { reducer, initialState } from './reducer';
 import { getImage, getImageBlob } from 'utils/image';
+import { reflow } from 'utils/transition';
 import deviceModels from 'components/Viewport/deviceModels';
 import presets from './presets';
-import phoneTexture from 'assets/phone-preview.jpg';
+import defaultTexture from 'assets/phone-preview.jpg';
 import './index.css';
 
 const devices = deviceModels.map(({ name }) => name);
@@ -20,6 +23,7 @@ const App = () => {
   const canvasRef = useRef();
   const [state, dispatch] = useReducer(reducer, initialState);
   const { deviceRotation, cameraRotation } = state;
+  const [texture, setTexture] = useState(defaultTexture);
   const [defaultDevice] = devices;
   const [deviceType, setDeviceType] = useState(defaultDevice);
   const [preset, setPreset] = useState();
@@ -29,6 +33,18 @@ const App = () => {
   const [cameraX, setCameraX] = useFormInput(cameraRotation[0]);
   const [cameraY, setCameraY] = useFormInput(cameraRotation[1]);
   const [deviceColor] = useFormInput('#FFFFFF');
+
+  // Event handler
+  onmessage = async event => {
+    const selection = event.data.pluginMessage;
+    if (!selection) return setTexture(defaultTexture);
+
+    const blob = new Blob([selection], { type: 'image/png' });
+
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = () => setTexture(reader.result);
+  };
 
   useMemo(() => {
     const deviceRotation = [deviceX.value, deviceY.value, deviceZ.value];
@@ -146,20 +162,22 @@ const App = () => {
       <main className="ui" tabIndex={-1}>
         <div className="ui__layout">
           <div className="ui__viewport-wrapper">
-            <div className="ui__viewport ui__viewport--entered">
-              {devices.map(device => (
-                <Fragment key={device}>
-                  {device === deviceType &&
-                    <Viewport
-                      ref={canvasRef}
-                      texture={phoneTexture}
-                      device={device}
-                      color={deviceColor.value}
-                    />
-                  }
-                </Fragment>
-              ))}
-            </div>
+            {devices.map(device => (
+              <Transition key={device} in={device === deviceType} timeout={0} onEnter={reflow}>
+                {status => (
+                  <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
+                    {device === deviceType &&
+                      <Viewport
+                        ref={canvasRef}
+                        texture={texture}
+                        device={device}
+                        color={deviceColor.value}
+                      />
+                    }
+                  </div>
+                )}
+              </Transition>
+            ))}
           </div>
           <div className="sidebar">
             <div className="sidebar__control">

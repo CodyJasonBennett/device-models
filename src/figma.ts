@@ -5,6 +5,19 @@ figma.showUI(__html__, {
   height: 500,
 })
 
+async function sendSelection() {
+  const selection = figma.currentPage.selection[0]
+  if (!selection) return figma.ui.postMessage(null);
+
+  const blob = await selection.exportAsync()
+
+  figma.ui.postMessage(blob)
+}
+
+sendSelection();
+
+figma.on('selectionchange', sendSelection)
+
 figma.ui.onmessage = async ({
   type,
   name,

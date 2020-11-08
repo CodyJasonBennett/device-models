@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useCallback, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import classNames from 'classnames';
 import {
   sRGBEncoding,
@@ -54,6 +54,23 @@ const Viewport = forwardRef(({
   const controls = useRef();
   const reduceMotion = usePrefersReducedMotion();
 
+  const applyScreenTexture = async (texture, node) => {
+    texture.encoding = sRGBEncoding;
+    texture.minFilter = LinearFilter;
+    texture.magFilter = LinearFilter;
+    texture.flipY = false;
+    texture.anisotropy = renderer.current.capabilities.getMaxAnisotropy();
+    texture.generateMipmaps = false;
+
+    // Decode the texture to prevent jank on first render
+    await renderer.current.initTexture(texture);
+
+    node.material.color = new Color(0xffffff);
+    node.material.transparent = false;
+    node.material.map = texture;
+    node.material.needsUpdate = true;
+  };
+
   useEffect(() => {
     const { clientWidth, clientHeight } = container.current;
 
@@ -88,40 +105,11 @@ const Viewport = forwardRef(({
     lights.current = [ambientLight, keyLight, fillLight];
     lights.current.forEach(light => scene.current.add(light));
 
-    const applyScreenTexture = async (texture, node) => {
-      texture.encoding = sRGBEncoding;
-      texture.minFilter = LinearFilter;
-      texture.magFilter = LinearFilter;
-      texture.flipY = false;
-      texture.anisotropy = renderer.current.capabilities.getMaxAnisotropy();
-      texture.generateMipmaps = false;
-
-      // Decode the texture to prevent jank on first render
-      await renderer.current.initTexture(texture);
-
-      node.material.color = new Color(0xffffff);
-      node.material.transparent = false;
-      node.material.map = texture;
-    };
-
     // Build an array of promises to fetch and apply models & animations
     const modelConfigPromises = models.filter(model => model.name === device).map(async ({ url }, index) => {
-      let loadFullResTexture;
-
       const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
 
-      gltf.scene.traverse(async node => {
-        if (node.name === MeshType.Screen) {
-          loadFullResTexture = async () => {
-            const image = await textureLoader.current.loadAsync(texture);
-            await applyScreenTexture(image, node);
-          };
-        }
-      });
-
-      modelGroup.current.add(gltf.scene);
-
-      return { loadFullResTexture };
+      return modelGroup.current.add(gltf.scene);
     });
 
     setModelData(modelConfigPromises);
@@ -151,10 +139,7 @@ const Viewport = forwardRef(({
 
       setLoaded(true);
 
-      const handleModelLoad = loadedModels.map(async model => {
-        // Load full res screen texture
-        await model.loadFullResTexture();
-
+      const handleModelLoad = loadedModels.map(model => {
         // Render the loaded texture
         if (reduceMotion) {
           renderFrame();
@@ -258,13 +243,27 @@ const Viewport = forwardRef(({
   }, [loaded, cameraRotation, showDelay]);
 
   useEffect(() => {
+    if (!loaded) return;
+
     modelGroup.current.traverse(async node => {
       if (node.material && node.name !== MeshType.Screen) {
         node.material.color = new Color(color);
         node.material.color.convertSRGBToLinear();
       }
     });
-  }, [color]);
+  }, [loaded, color]);
+
+  useMemo(() => {
+    if (!loaded) return;
+
+    modelGroup.current.traverse(async node => {
+      if (node.name === MeshType.Screen) {
+        const image = await textureLoader.current.loadAsync(texture);
+
+        await applyScreenTexture(image, node);
+      }
+    });
+  }, [loaded, texture]);
 
   // Handle window resize
   useEffect(() => {
