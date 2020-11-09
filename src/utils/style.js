@@ -1,30 +1,4 @@
 /**
- * Media query breakpoints
- */
-export const media = {
-  desktop: 2080,
-  laptop: 1680,
-  tablet: 1024,
-  mobile: 696,
-  mobileS: 400,
-};
-
-/**
- * Convert a px string to a number
- */
-export const pxToNum = px => Number(px.replace('px', ''));
-
-/**
- * Convert a number to a px string
- */
-export const numToPx = num => `${num}px`;
-
-/**
- * Convert pixel values to rem for a11y
- */
-export const pxToRem = px => `${px / 16}rem`;
-
-/**
  * Convert ms token values to a raw numbers for ReactTransitionGroup
  * Transition delay props
  */

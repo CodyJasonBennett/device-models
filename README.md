@@ -1,6 +1,10 @@
 # Device Models
 
-Create mockups with 3D device models. Customize the color, camera angle, and device model for your mockups. Includes models for the iPhone 11 and Macbook Pro, with more models on the way for other devices.
+A Figma plugin to create mockups with 3D device models.
+
+[![Site preview](/public/social-image.png)](https://devicemodels.com)
+
+Create mockups with 3D device models. Customize the color, camera angle, and device model for your mockups. Includes models for the iPhone and Macbook Pro, with more models on the way for other devices.
 
 How to use:
 
@@ -16,4 +20,22 @@ How to use:
 
 6. Click "Save as Image" to render the current view as an image layer in Figma.
 
-7. To edit the mockup after it's been saved, select the layer and click "Edit Mockup" under Plugin on the properties panel. This will allow you to apply any updates made to its screen layer, or change any of its other settings.
+## Install & run
+
+Make sure you have nodejs and yarn installed. Install dependencies with:
+
+```bash
+yarn
+```
+
+Once it's done start up a local server with:
+
+```bash
+yarn start
+```
+
+To run get a production-ready build:
+
+```bash
+yarn build
+```

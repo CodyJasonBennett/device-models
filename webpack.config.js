@@ -15,8 +15,12 @@ module.exports = (env, argv) => ({
       {
         test: /\.css$/,
         loader: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' }
+          {
+            loader: 'style-loader'
+          },
+          {
+            loader: 'css-loader'
+          }
         ]
       },
       {
@@ -55,7 +59,7 @@ module.exports = (env, argv) => ({
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/index.html',
+      template: './public/index.html',
       filename: 'index.html',
       inlineSource: '.(js)$',
       chunks: ['index']

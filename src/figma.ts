@@ -7,14 +7,14 @@ figma.showUI(__html__, {
 
 async function sendSelection() {
   const selection = figma.currentPage.selection[0]
-  if (!selection) return figma.ui.postMessage(null);
+  if (!selection) return figma.ui.postMessage(null)
 
   const blob = await selection.exportAsync()
 
-  figma.ui.postMessage(blob)
+  return figma.ui.postMessage(blob)
 }
 
-sendSelection();
+sendSelection()
 
 figma.on('selectionchange', sendSelection)
 
