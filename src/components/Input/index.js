@@ -14,12 +14,7 @@ const Input = ({
   const inputId = `${id}-input`;
 
   return (
-    <div
-      className="input"
-      style={style}
-      onMouseOver={() => setIsHovered(true)}
-      onMouseOut={() => setIsHovered(false)}
-    >
+    <div className="input" style={style}>
       {icon && <Icon icon={icon} className="input__icon" />}
       <input
         className="input__element"

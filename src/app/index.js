@@ -12,10 +12,11 @@ import { getImage, getImageBlob } from 'utils/image';
 import { reflow } from 'utils/transition';
 import deviceModels from 'components/Viewport/deviceModels';
 import presets from './presets';
-import defaultTexture from 'assets/phone-preview.jpg';
 import './index.css';
 
 const devices = deviceModels.map(({ name }) => name);
+const textures = deviceModels.map(({ texture }) => texture);
+const renders = deviceModels.map(({ renders }) => renders);
 
 export const AppContext = createContext();
 
@@ -23,6 +24,7 @@ const App = () => {
   const canvasRef = useRef();
   const [state, dispatch] = useReducer(reducer, initialState);
   const { deviceRotation, cameraRotation } = state;
+  const [defaultTexture] = textures;
   const [texture, setTexture] = useState(defaultTexture);
   const [defaultDevice] = devices;
   const [deviceType, setDeviceType] = useState(defaultDevice);
@@ -45,6 +47,12 @@ const App = () => {
     reader.readAsDataURL(blob);
     reader.onloadend = () => setTexture(reader.result);
   };
+
+  useMemo(() => {
+    const { texture: activeTexture } = deviceModels.find(({ name }) => name === deviceType);
+
+    if (textures.includes(texture) && texture !== activeTexture) setTexture(activeTexture);
+  }, [texture, deviceType]);
 
   useMemo(() => {
     const deviceRotation = [deviceX.value, deviceY.value, deviceZ.value];
@@ -191,7 +199,7 @@ const App = () => {
                 Angle Preset
               </div>
               <div className="sidebar__devices" data-scroll="true">
-                {presets.map(({ label, src, ...rest }, index) => (
+                {presets.map(({ label, ...rest }, index) => (
                   <Preset
                     key={index}
                     index={index}
@@ -201,7 +209,7 @@ const App = () => {
                     <img
                       className="sidebar__device-image"
                       alt={label}
-                      src={src}
+                      src={deviceModels.find(({ name }) => name === deviceType).renders[index]}
                     />
                   </Preset>
                 ))}

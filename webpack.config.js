@@ -14,7 +14,7 @@ module.exports = (env, argv) => ({
       },
       {
         test: /\.css$/,
-        loader: [
+        use: [
           {
             loader: 'style-loader'
           },
@@ -54,6 +54,7 @@ module.exports = (env, argv) => ({
     modules: [path.resolve(__dirname, 'src'), 'node_modules']
   },
   output: {
+    publicPath: '/',
     filename: '[name].js',
     path: path.resolve(__dirname, 'build')
   },
@@ -64,6 +65,6 @@ module.exports = (env, argv) => ({
       inlineSource: '.(js)$',
       chunks: ['index']
     }),
-    new HtmlWebpackInlineSourcePlugin()
+    new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin)
   ]
 });
