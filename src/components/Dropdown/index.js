@@ -1,4 +1,4 @@
-import React, { useRef, useState, Fragment } from 'react';
+import { useRef, useState, Fragment } from 'react';
 import classNames from 'classnames';
 import { Transition } from 'react-transition-group';
 import Icon from 'components/Icon';
@@ -14,7 +14,7 @@ const Dropdown = ({ options, onChange }) => {
   const id = useId();
   const dropdownId = `dropdown-button-${id}`;
 
-  const updateValue = (option) => {
+  const updateValue = option => {
     setValue(option);
     if (onChange) onChange(option);
 
@@ -33,10 +33,7 @@ const Dropdown = ({ options, onChange }) => {
 
   return (
     <Fragment>
-      <div
-        className="dropdown"
-        ref={dropdown}
-      >
+      <div className="dropdown" ref={dropdown}>
         <button
           aria-haspopup="true"
           className="dropdown__button dropdown__input"
@@ -49,11 +46,14 @@ const Dropdown = ({ options, onChange }) => {
           <Icon icon="chevron" className="dropdown__input-chevron-active" />
         </button>
       </div>
-      {expanded &&
+      {expanded && (
         <Transition in={true} timeout={0} onEnter={reflow}>
           {status => (
             <div
-              className={classNames('dropdown__menu-container', `dropdown__menu-container--${status}`)}
+              className={classNames(
+                'dropdown__menu-container',
+                `dropdown__menu-container--${status}`
+              )}
               role="menu"
               tabIndex={-1}
               aria-labelledby={dropdownId}
@@ -68,16 +68,16 @@ const Dropdown = ({ options, onChange }) => {
                   tabIndex={-1}
                   onClick={() => updateValue(option)}
                 >
-                  {value === option &&
+                  {value === option && (
                     <Icon icon="check" className="dropdown__menu-item-check" />
-                  }
+                  )}
                   <span>{option}</span>
                 </button>
               ))}
             </div>
           )}
         </Transition>
-      }
+      )}
     </Fragment>
   );
 };

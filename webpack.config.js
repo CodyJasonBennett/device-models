@@ -10,61 +10,48 @@ module.exports = (env, argv) => ({
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: 'babel-loader'
+        use: 'babel-loader',
       },
       {
         test: /\.css$/,
         use: [
           {
-            loader: 'style-loader'
+            loader: 'style-loader',
           },
           {
-            loader: 'css-loader'
-          }
-        ]
+            loader: 'css-loader',
+          },
+        ],
       },
       {
-        test: /\.(png|jpe?g|gif|glb)$/,
+        test: /\.(png|jpe?g|gif|woff2|glb)$/,
         use: {
           loader: 'url-loader',
-        }
+        },
       },
-      {
-        test: /\.svg$/,
-        use: [
-          {
-            loader: 'babel-loader'
-          },
-          {
-            loader: 'react-svg-loader',
-            options: {
-              jsx: true
-            }
-          }
-        ]
-      }
-    ]
+    ],
   },
   entry: {
-    index: './src/index.js',
-    figma: './src/figma.ts'
+    index: './src/plugin/index.js',
+    figma: './src/plugin/figma.js',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.tsx', '.ts'],
-    modules: [path.resolve(__dirname, 'src'), 'node_modules']
+    extensions: ['.js', '.jsx'],
+    modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   output: {
     publicPath: '/',
     filename: '[name].js',
-    path: path.resolve(__dirname, 'build')
+    path: path.resolve(__dirname, 'build-plugin'),
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './public/index.html',
       filename: 'index.html',
       inlineSource: '.(js)$',
-      chunks: ['index']
+      inject: 'body',
+      chunks: ['index'],
     }),
-    new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin)
-  ]
+    new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
+  ],
 });

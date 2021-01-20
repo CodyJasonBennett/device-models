@@ -13,7 +13,7 @@ function offset(element) {
   const offsetLeft = rect.left + scrollLeft;
 
   const top = element.clientHeight + offsetTop + 8;
-  const left = offsetLeft + (element.clientWidth / 2);
+  const left = offsetLeft + element.clientWidth / 2;
 
   return { top, left };
 }
