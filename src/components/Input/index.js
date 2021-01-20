@@ -1,15 +1,8 @@
-import React, { Fragment } from 'react';
 import Icon from 'components/Icon';
 import { useId } from 'hooks';
 import './index.css';
 
-const Input = ({
-  style,
-  icon,
-  label,
-  type = 'text',
-  ...rest
-}) => {
+const Input = ({ style, icon, label, type = 'text', ...rest }) => {
   const id = useId();
   const inputId = `${id}-input`;
 

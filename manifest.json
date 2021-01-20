@@ -2,6 +2,6 @@
   "name": "Device Models",
   "id": "906973799344127422",
   "api": "1.0.0",
-  "main": "build/figma.js",
-  "ui": "build/index.html"
+  "main": "build-plugin/figma.js",
+  "ui": "build-plugin/index.html"
 }

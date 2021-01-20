@@ -1,6 +1,6 @@
 {
   "name": "device-models",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "homepage": "https://devicemodels.com",
   "description": "A Figma plugin to create mockups with 3D device models.",
   "repository": "https://github.com/CodyJasonBennett/device-models.git",
@@ -8,37 +8,77 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "prettier": "^2.2.1"
+    "@babel/core": "^7.12.10",
+    "@babel/preset-react": "^7.12.10",
+    "@storybook/addon-a11y": "^6.1.14",
+    "@storybook/addon-actions": "^6.1.14",
+    "@storybook/addon-controls": "^6.1.14",
+    "@storybook/preset-create-react-app": "^3.1.5",
+    "@storybook/react": "^6.1.14",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.3",
+    "@testing-library/user-event": "^12.6.0",
+    "babel-loader": "8.1.0",
+    "css-loader": "^5.0.1",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.5",
+    "file-loader": "^6.2.0",
+    "html-webpack-inline-source-plugin": "1.0.0-beta.2",
+    "html-webpack-plugin": "^4.0.0-alpha",
+    "prettier": "^2.2.1",
+    "react-scripts-postcss": "4.0.0-mod1",
+    "react-snap": "1.23.0",
+    "source-map-explorer": "^2.5.2",
+    "style-loader": "^2.0.0",
+    "stylelint": "^13.8.0",
+    "stylelint-config-recommended": "^3.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "4.44.2",
+    "webpack-cli": "^4.4.0"
   },
   "dependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/plugin-proposal-class-properties": "^7.7.4",
-    "@babel/plugin-transform-runtime": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-react": "^7.12.10",
-    "@figma/plugin-typings": "^1.19.0",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "babel-loader": "^8.2.2",
     "classnames": "^2.2.6",
-    "css-loader": "^5.0.1",
-    "html-webpack-inline-source-plugin": "1.0.0-beta.2",
-    "html-webpack-plugin": "^4.5.0",
     "popmotion": "^8.7.6",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-svg-loader": "^3.0.3",
+    "react-helmet": "^6.1.0",
+    "react-router-dom": "5.2.0",
     "react-transition-group": "^4.4.1",
-    "style-loader": "^2.0.0",
-    "three": "^0.123.0",
-    "ts-loader": "^8.0.12",
-    "typescript": "^4.1.3",
-    "url-loader": "^4.1.1",
-    "webpack": "^5.10.3",
-    "webpack-cli": "^4.2.0"
+    "three": "^0.124.0"
   },
   "scripts": {
-    "start": "webpack --watch --mode development",
-    "build": "webpack --mode production"
-  }
+    "start": "set PORT=80 && react-scripts start",
+    "start-plugin": "set NODE_ENV=development&&webpack --watch --mode development",
+    "build": "react-scripts build",
+    "build-plugin": "set NODE_ENV=production&&webpack --mode production",
+    "build-storybook": "build-storybook -o build-storybook",
+    "postbuild": "react-snap",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "storybook": "start-storybook -p 9009 -s public",
+    "analyze": "source-map-explorer 'build/static/js/*.js'"
+  },
+  "reactSnap": {
+    "puppeteerArgs": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
+    ],
+    "skipThirdPartyRequests": true,
+    "headless": true,
+    "crawl": true
+  },
+  "browserslist": {
+    "production": [
+      ">10%",
+      "not dead",
+      "not ie 11",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "https://devicemodels.com"
 }

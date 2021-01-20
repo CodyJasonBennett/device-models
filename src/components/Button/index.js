@@ -1,6 +1,6 @@
-import React from 'react';
 import classNames from 'classnames';
 import Icon from 'components/Icon';
+import { blurOnMouseUp } from 'utils/focus';
 import './index.css';
 
 const Button = ({
@@ -19,6 +19,7 @@ const Button = ({
       'button--icon-only': iconOnly,
       'button--grey': grey,
     })}
+    onMouseUp={blurOnMouseUp}
     {...rest}
   >
     {!iconOnly && children}
