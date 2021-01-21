@@ -1,5 +1,5 @@
 body {
-  font-family: var(--systemFontStack);
+  font-family: var(--fontStack);
   box-sizing: border-box;
   font-size: 16px;
   margin: 0;

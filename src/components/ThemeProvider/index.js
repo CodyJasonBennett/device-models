@@ -11,21 +11,21 @@ import InterBold from 'assets/fonts/inter-bold.woff2';
 
 export const fontStyles = `
   @font-face {
-    font-family: "Gotham";
+    font-family: "Inter";
     font-weight: 400;
     src: url(${InterRegular}) format("woff");
     font-display: swap;
   }
 
   @font-face {
-    font-family: "Gotham";
+    font-family: "Inter";
     font-weight: 500;
     src: url(${InterMedium}) format("woff");
     font-display: swap;
   }
 
   @font-face {
-    font-family: "Gotham";
+    font-family: "Inter";
     font-weight: 700;
     src: url(${InterBold}) format("woff2");
     font-display: swap;
@@ -40,27 +40,24 @@ const ThemeProvider = ({
   children,
   className,
   as: Component = 'div',
-  inline,
 }) => {
   const colorScheme = usePrefersColorScheme();
   const currentTheme = { ...theme[themeId || colorScheme], ...themeOverrides };
   const parentTheme = useTheme();
-  const isRootProvider = inline || !parentTheme.themeId;
+  const isRootProvider = !parentTheme.themeId;
 
   return (
     <ThemeContext.Provider value={currentTheme}>
       {/* Add fonts and base tokens for the root provider */}
       {isRootProvider && (
         <Fragment>
-          {!inline &&
-            <Helmet>
-              <link rel="preload" href={InterRegular} as="font" crossorigin="" />
-              <link rel="preload" href={InterMedium} as="font" crossorigin="" />
-              <link rel="preload" href={InterBold} as="font" crossorigin="" />
-              <style>{fontStyles}</style>
-              <style>{tokenStyles}</style>
-            </Helmet>
-          }
+          <Helmet>
+            <link rel="preload" href={InterRegular} as="font" crossorigin="" />
+            <link rel="preload" href={InterMedium} as="font" crossorigin="" />
+            <link rel="preload" href={InterBold} as="font" crossorigin="" />
+            <style>{fontStyles}</style>
+            <style>{tokenStyles}</style>
+          </Helmet>
           {children}
         </Fragment>
       )}
