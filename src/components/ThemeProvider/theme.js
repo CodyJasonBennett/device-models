@@ -7,6 +7,7 @@ const systemFontStack =
 const baseTokens = {
   rgbBlack: '0, 0, 0',
   rgbWhite: '255, 255, 255',
+  rgbBackground: '255, 185, 97',
   rgbPrimary: '24, 160, 251',
   rgbAccent: '24, 160, 251',
   bezierFastoutSlowin: 'cubic-bezier(0.4, 0.0, 0.2, 1)',

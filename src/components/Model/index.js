@@ -120,6 +120,7 @@ const Model = forwardRef(
       setModelData(modelConfigPromises);
 
       controls.current = new OrbitControls(camera.current, renderer.current.domElement);
+      controls.current.enableDamping = true;
 
       return () => {
         removeLights(lights.current);
@@ -225,7 +226,7 @@ const Model = forwardRef(
         controls.current.update();
       });
 
-      const animation = chain(
+      const transformation = chain(
         delay(300 + showDelay * 0.6),
         spring({
           from: startRotation,
@@ -236,9 +237,11 @@ const Model = forwardRef(
         })
       );
 
-      controls.current.reset();
+      const animation = transformation.start(modelValue);
 
-      animation.start(modelValue);
+      return () => {
+        animation.stop();
+      };
     }, [loaded, cameraRotation, showDelay]);
 
     useEffect(() => {

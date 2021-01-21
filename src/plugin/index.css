@@ -186,7 +186,7 @@ button {
   box-shadow: inset 0 0 0 2px rgba(var(--rgbText), 0.2);
 }
 
-.sidebar__device-button[aria-pressed=true] {
+.sidebar__device-button[aria-pressed='true'] {
   box-shadow: inset 0 0 0 2px rgba(var(--rgbPrimary));
   background-color: rgba(var(--rgbPrimary), 0.2);
 }

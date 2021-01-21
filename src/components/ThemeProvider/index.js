@@ -40,24 +40,36 @@ const ThemeProvider = ({
   children,
   className,
   as: Component = 'div',
+  inline,
 }) => {
   const colorScheme = usePrefersColorScheme();
   const currentTheme = { ...theme[themeId || colorScheme], ...themeOverrides };
   const parentTheme = useTheme();
-  const isRootProvider = !parentTheme.themeId;
+  const isRootProvider = inline || !parentTheme.themeId;
 
   return (
     <ThemeContext.Provider value={currentTheme}>
       {/* Add fonts and base tokens for the root provider */}
       {isRootProvider && (
         <Fragment>
-          <Helmet>
-            <link rel="preload" href={InterRegular} as="font" crossorigin="" />
-            <link rel="preload" href={InterMedium} as="font" crossorigin="" />
-            <link rel="preload" href={InterBold} as="font" crossorigin="" />
-            <style>{fontStyles}</style>
-            <style>{tokenStyles}</style>
-          </Helmet>
+          {inline && (
+            <Helmet>
+              <link
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Roboto+Mono&amp;display=swap"
+                rel="stylesheet"
+              />
+              <style>{tokenStyles}</style>
+            </Helmet>
+          )}
+          {!inline && (
+            <Helmet>
+              <link rel="preload" href={InterRegular} as="font" crossorigin="" />
+              <link rel="preload" href={InterMedium} as="font" crossorigin="" />
+              <link rel="preload" href={InterBold} as="font" crossorigin="" />
+              <style>{fontStyles}</style>
+              <style>{tokenStyles}</style>
+            </Helmet>
+          )}
           {children}
         </Fragment>
       )}

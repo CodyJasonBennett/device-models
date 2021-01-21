@@ -14,13 +14,17 @@ export const normal = () => (
 
 export const primary = () => (
   <StoryContainer>
-    <Button primary onClick={action('clicked')}>Primary</Button>
+    <Button primary onClick={action('clicked')}>
+      Primary
+    </Button>
   </StoryContainer>
 );
 
 export const grey = () => (
   <StoryContainer>
-    <Button grey onClick={action('clicked')}>Grey</Button>
+    <Button grey onClick={action('clicked')}>
+      Grey
+    </Button>
   </StoryContainer>
 );
 

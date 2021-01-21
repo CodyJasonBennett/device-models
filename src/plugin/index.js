@@ -1,18 +1,30 @@
-import { useRef, useState, useMemo, useCallback, useEffect, Fragment } from 'react';
+import {
+  lazy,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  Fragment,
+  Suspense,
+} from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
 import ThemeProvider from 'components/ThemeProvider';
 import { Transition } from 'react-transition-group';
 import Tooltip from 'components/Tooltip';
-import Model, { models } from 'components/Model';
+import Spinner from 'components/Spinner';
 import Dropdown from 'components/Dropdown';
 import Input from 'components/Input';
 import Button from 'components/Button';
+import { models } from 'components/Model';
 import { useFormInput } from 'hooks';
 import { getImage, getImageBlob } from 'utils/image';
 import { reflow } from 'utils/transition';
 import presets from './presets';
 import './index.css';
+
+const Model = lazy(() => import('components/Model'));
 
 const devices = models.map(({ name }) => name);
 const textures = models.map(({ texture }) => texture);
@@ -173,18 +185,21 @@ const Plugin = () => {
   };
 
   return (
-    <ThemeProvider>
+    <ThemeProvider inline>
       <main className="ui" tabIndex={-1}>
         <div className="ui__layout">
           <div className="ui__viewport-wrapper">
             {devices.map(device => (
-              <Fragment key={device}>
-                {device === deviceType && (
-                  <Transition in={true} timeout={0} onEnter={reflow}>
-                    {status => (
-                      <div
-                        className={classNames('ui__viewport', `ui__viewport--${status}`)}
-                      >
+              <Transition
+                key={device}
+                in={device === deviceType}
+                timeout={0}
+                onEnter={reflow}
+              >
+                {status => (
+                  <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
+                    {device === deviceType && (
+                      <Suspense fallback={<Spinner />}>
                         <Model
                           ref={canvasRef}
                           texture={texture}
@@ -193,11 +208,11 @@ const Plugin = () => {
                           deviceRotation={deviceRotation}
                           cameraRotation={cameraRotation}
                         />
-                      </div>
+                      </Suspense>
                     )}
-                  </Transition>
+                  </div>
                 )}
-              </Fragment>
+              </Transition>
             ))}
           </div>
           <div className="sidebar">
