@@ -1,6 +1,6 @@
 {
   "name": "device-models",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "homepage": "https://devicemodels.com",
   "description": "A Figma plugin to create mockups with 3D device models.",
   "repository": "https://github.com/CodyJasonBennett/device-models.git",
