@@ -1,7 +1,8 @@
 import { useRef, useState, useMemo, useCallback, useEffect, Fragment } from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
-import ThemeProvider from 'components/ThemeProvider';
+import ThemeProvider, { tokenStyles } from 'components/ThemeProvider';
+import Helmet from 'react-helmet';
 import { Transition } from 'react-transition-group';
 import Tooltip from 'components/Tooltip';
 import Model, { models } from 'components/Model';
@@ -174,6 +175,9 @@ const Plugin = () => {
 
   return (
     <ThemeProvider inline>
+      <Helmet>
+        <style>{tokenStyles}</style>
+      </Helmet>
       <main className="ui" tabIndex={-1}>
         <div className="ui__layout">
           <div className="ui__viewport-wrapper">

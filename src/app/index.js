@@ -19,9 +19,6 @@ export const TransitionContext = createContext();
 const repoPrompt = `\u00A9 2020-${new Date().getFullYear()} Cody Bennett\n\nCheck out the source code: https://github.com/CodyJasonBennett/device-models`;
 
 const App = () => {
-  const location = useLocation();
-  const { pathname } = location;
-
   useEffect(() => {
     if (!prerender) {
       console.info(`${repoPrompt}\n\n`);
@@ -33,33 +30,44 @@ const App = () => {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Helmet>
-          <link rel="canonical" href={`https://devicemodels.com${pathname}`} />
-        </Helmet>
-        <VisuallyHidden showOnFocus as="a" className="skip-to-main" href="#MainContent">
-          Skip to main content
-        </VisuallyHidden>
-        <TransitionGroup component="main" className="app" tabIndex={-1} id="MainContent">
-          <Transition
-            key={pathname}
-            timeout={msToNum(tokens.base.durationS)}
-            onEnter={reflow}
-          >
-            {status => (
-              <TransitionContext.Provider value={{ status }}>
-                <div className={classNames('app__page', `app__page--${status}`)}>
-                  <Suspense fallback={<Fragment />}>
-                    <Switch location={location}>
-                      <Route exact path="/" component={Home} />
-                    </Switch>
-                  </Suspense>
-                </div>
-              </TransitionContext.Provider>
-            )}
-          </Transition>
-        </TransitionGroup>
+        <AppRoutes />
       </BrowserRouter>
     </ThemeProvider>
+  );
+};
+
+const AppRoutes = () => {
+  const location = useLocation();
+  const { pathname } = location;
+
+  return (
+    <Fragment>
+      <Helmet>
+        <link rel="canonical" href={`https://devicemodels.com${pathname}`} />
+      </Helmet>
+      <VisuallyHidden showOnFocus as="a" className="skip-to-main" href="#MainContent">
+        Skip to main content
+      </VisuallyHidden>
+      <TransitionGroup component="main" className="app" tabIndex={-1} id="MainContent">
+        <Transition
+          key={pathname}
+          timeout={msToNum(tokens.base.durationS)}
+          onEnter={reflow}
+        >
+          {status => (
+            <TransitionContext.Provider value={{ status }}>
+              <div className={classNames('app__page', `app__page--${status}`)}>
+                <Suspense fallback={<Fragment />}>
+                  <Switch location={location}>
+                    <Route exact path="/" component={Home} />
+                  </Switch>
+                </Suspense>
+              </div>
+            </TransitionContext.Provider>
+          )}
+        </Transition>
+      </TransitionGroup>
+    </Fragment>
   );
 };
 

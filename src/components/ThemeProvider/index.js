@@ -52,17 +52,15 @@ const ThemeProvider = ({
       {/* Add fonts and base tokens for the root provider */}
       {isRootProvider && (
         <Fragment>
-          <Helmet>
-            {!inline &&
-              <Fragment>
-                <link rel="preload" href={InterRegular} as="font" crossorigin="" />
-                <link rel="preload" href={InterMedium} as="font" crossorigin="" />
-                <link rel="preload" href={InterBold} as="font" crossorigin="" />
-                <style>{fontStyles}</style>
-              </Fragment>
-            }
-            <style>{tokenStyles}</style>
+          {!inline &&
+            <Helmet>
+              <link rel="preload" href={InterRegular} as="font" crossorigin="" />
+              <link rel="preload" href={InterMedium} as="font" crossorigin="" />
+              <link rel="preload" href={InterBold} as="font" crossorigin="" />
+              <style>{fontStyles}</style>
+              <style>{tokenStyles}</style>
             </Helmet>
+          }
           {children}
         </Fragment>
       )}
