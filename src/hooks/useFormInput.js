@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 function useFormInput(initialValue = '') {
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState();
   const [isDirty, setIsDirty] = useState(false);
+
+  useMemo(() => setValue(initialValue), [initialValue]);
 
   const handleChange = event => {
     setValue(event.target.value);
@@ -28,16 +30,13 @@ function useFormInput(initialValue = '') {
     }
   };
 
-  return [
-    {
-      value,
-      error,
-      onChange: handleChange,
-      onBlur: handleBlur,
-      onInvalid: handleInvalid,
-    },
-    setValue,
-  ];
+  return {
+    value,
+    error,
+    onChange: handleChange,
+    onBlur: handleBlur,
+    onInvalid: handleInvalid,
+  };
 }
 
 export default useFormInput;

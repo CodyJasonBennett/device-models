@@ -1,68 +1,57 @@
-import {
-  lazy,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-  useEffect,
-  Fragment,
-  Suspense,
-} from 'react';
+import { useRef, useState, useEffect, useMemo, Fragment, Suspense } from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
 import ThemeProvider from 'components/ThemeProvider';
-import { Transition } from 'react-transition-group';
+import { SwitchTransition, Transition } from 'react-transition-group';
 import Tooltip from 'components/Tooltip';
+import Device, { devices } from 'components/Device';
 import Spinner from 'components/Spinner';
 import Dropdown from 'components/Dropdown';
 import Input from 'components/Input';
 import Button from 'components/Button';
-import { models } from 'components/Model';
 import { useFormInput } from 'hooks';
 import { getImage, getImageBlob } from 'utils/image';
 import { reflow } from 'utils/transition';
 import presets from './presets';
 import './index.css';
 
-const Model = lazy(() => import('components/Model'));
-
-const devices = models.map(({ name }) => name);
-const textures = models.map(({ texture }) => texture);
+const [defaultDevice] = devices;
+const [defaultPreset] = presets;
 
 const Plugin = () => {
-  const canvasRef = useRef();
-  const [defaultTexture] = textures;
-  const [texture, setTexture] = useState(defaultTexture);
-  const [defaultDevice] = devices;
-  const [deviceType, setDeviceType] = useState(defaultDevice);
+  const canvas = useRef();
+  const [texture, setTexture] = useState(defaultDevice.texture);
+  const [device, setDevice] = useState(defaultDevice.name);
   const [preset, setPreset] = useState();
-  const [deviceRotation, setDeviceRotation] = useState([0, 0, 0]);
-  const [cameraRotation, setCameraRotation] = useState([0, 0, 0]);
-  const [deviceX, setDeviceX] = useFormInput(deviceRotation[0]);
-  const [deviceY, setDeviceY] = useFormInput(deviceRotation[1]);
-  const [deviceZ, setDeviceZ] = useFormInput(deviceRotation[2]);
-  const [cameraX, setCameraX] = useFormInput(cameraRotation[0]);
-  const [cameraY, setCameraY] = useFormInput(cameraRotation[1]);
-  const [deviceColor] = useFormInput('#FFFFFF');
+  const [deviceRotation, setDeviceRotation] = useState(defaultPreset.deviceRotation);
+  const [cameraRotation, setCameraRotation] = useState(defaultPreset.cameraRotation);
+  const deviceX = useFormInput(deviceRotation[0]);
+  const deviceY = useFormInput(deviceRotation[1]);
+  const deviceZ = useFormInput(deviceRotation[2]);
+  const cameraX = useFormInput(cameraRotation[0]);
+  const cameraY = useFormInput(cameraRotation[1]);
+  const deviceColor = useFormInput('#FFFFFF');
 
-  // Event handler
-  onmessage = async event => {
-    const selection = event.data.pluginMessage;
-    if (!selection) return setTexture(defaultTexture);
+  useEffect(() => {
+    window.onmessage = async event => {
+      const selection = event.data.pluginMessage;
+      if (!selection) return setTexture(defaultDevice.texture);
 
-    const blob = new Blob([selection], { type: 'image/png' });
+      const blob = new Blob([selection], { type: 'image/png' });
 
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = () => setTexture(reader.result);
-  };
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => setTexture(reader.result);
+    };
+  }, []);
 
   useMemo(() => {
-    const { texture: activeTexture } = models.find(({ name }) => name === deviceType);
+    const activeDevice = devices.find(({ name }) => name === device);
 
-    if (textures.includes(texture) && texture !== activeTexture)
-      setTexture(activeTexture);
-  }, [texture, deviceType]);
+    if (devices.find(device => device.texture === texture)) {
+      setTexture(activeDevice.texture);
+    }
+  }, [device, texture]);
 
   useMemo(() => {
     const deviceRotation = [deviceX.value, deviceY.value, deviceZ.value];
@@ -76,36 +65,11 @@ const Plugin = () => {
     setCameraRotation(cameraRotation);
   }, [cameraX.value, cameraY.value]);
 
-  const updateRotation = useCallback(
-    ({ deviceRotation, cameraRotation }) => {
-      setDeviceRotation(deviceRotation);
-      setCameraRotation(cameraRotation);
-
-      const [deviceX, deviceY, deviceZ] = deviceRotation;
-
-      setDeviceX(deviceX);
-      setDeviceY(deviceY);
-      setDeviceZ(deviceZ);
-
-      const [cameraX, cameraY] = cameraRotation;
-
-      setCameraX(cameraX);
-      setCameraY(cameraY);
-    },
-    [setDeviceX, setDeviceY, setDeviceZ, setCameraX, setCameraY]
-  );
-
-  useEffect(() => {
-    const [defaultPreset] = presets;
-
-    updateRotation(defaultPreset);
-  }, [updateRotation]);
-
   const createEmptyFrame = event => {
     event.preventDefault();
     event.stopPropagation();
 
-    const { name, width, height } = models.filter(({ name }) => name === deviceType)[0];
+    const { name, width, height } = devices.find(({ name }) => name === device);
 
     parent.postMessage(
       {
@@ -124,9 +88,9 @@ const Plugin = () => {
     event.preventDefault();
     event.stopPropagation();
 
-    const { name } = models.filter(({ name }) => name === deviceType)[0];
-    const { width, height } = await getImage(canvasRef.current.toDataURL());
-    const blob = getImageBlob(canvasRef.current.toDataURL());
+    const { name } = devices.find(({ name }) => name === device);
+    const { width, height } = await getImage(canvas.current.toDataURL());
+    const blob = getImageBlob(canvas.current.toDataURL());
 
     parent.postMessage(
       {
@@ -152,7 +116,6 @@ const Plugin = () => {
   }) => {
     const presetRef = useRef();
     const [isHovered, setIsHovered] = useState(false);
-    const tooltipId = `device-tooltip-${index + 1}`;
 
     const onClick = event => {
       event.preventDefault();
@@ -160,7 +123,8 @@ const Plugin = () => {
 
       setPreset(index);
 
-      updateRotation({ deviceRotation, cameraRotation });
+      setDeviceRotation(deviceRotation);
+      setCameraRotation(cameraRotation);
     };
 
     return (
@@ -169,7 +133,6 @@ const Plugin = () => {
           ref={presetRef}
           className="sidebar__device-button"
           aria-pressed={preset === index ? 'true' : 'false'}
-          aria-describedby={tooltipId}
           onMouseOver={() => setIsHovered(true)}
           onMouseOut={() => setIsHovered(false)}
           onClick={onClick}
@@ -177,7 +140,7 @@ const Plugin = () => {
         >
           {children}
         </button>
-        <Tooltip id={tooltipId} visible={isHovered} parent={presetRef}>
+        <Tooltip visible={isHovered} parent={presetRef}>
           {label}
         </Tooltip>
       </Fragment>
@@ -188,39 +151,40 @@ const Plugin = () => {
     <ThemeProvider inline>
       <main className="ui" tabIndex={-1}>
         <div className="ui__layout">
-          <div className="ui__viewport-wrapper">
-            {devices.map(device => (
-              <Transition
-                key={device}
-                in={device === deviceType}
-                timeout={0}
-                onEnter={reflow}
-              >
-                {status => (
-                  <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
-                    {device === deviceType && (
-                      <Suspense fallback={<Spinner />}>
-                        <Model
-                          ref={canvasRef}
-                          texture={texture}
-                          device={device}
-                          color={deviceColor.value}
-                          deviceRotation={deviceRotation}
-                          cameraRotation={cameraRotation}
-                        />
-                      </Suspense>
-                    )}
-                  </div>
-                )}
-              </Transition>
-            ))}
-          </div>
+          <SwitchTransition
+            mode="out-in"
+            className="ui__viewport-wrapper"
+            component="div"
+          >
+            <Transition
+              appear
+              timeout={{ enter: 400, exit: 200 }}
+              key={device}
+              onEnter={reflow}
+            >
+              {status => (
+                <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
+                  <Suspense fallback={<Spinner />}>
+                    <Device
+                      ref={canvas}
+                      texture={texture}
+                      device={device}
+                      color={deviceColor.value}
+                      deviceRotation={deviceRotation}
+                      cameraRotation={cameraRotation}
+                    />
+                  </Suspense>
+                </div>
+              )}
+            </Transition>
+          </SwitchTransition>
           <div className="sidebar">
             <div className="sidebar__control">
-              <div className="sidebar__label" id="deviceModel">
-                Device Model
-              </div>
-              <Dropdown options={devices} onChange={device => setDeviceType(device)} />
+              <div className="sidebar__label">Device Model</div>
+              <Dropdown
+                options={devices.map(device => device.name)}
+                onChange={device => setDevice(device)}
+              />
             </div>
             <div className="sidebar__control">
               <div className="sidebar__label" id="anglePreset">
@@ -228,11 +192,17 @@ const Plugin = () => {
               </div>
               <div className="sidebar__devices" data-scroll="true">
                 {presets.map(({ label, ...rest }, index) => (
-                  <Preset key={index} index={index} label={label} {...rest}>
+                  <Preset
+                    key={index}
+                    index={index}
+                    label={label}
+                    aria-describedby="anglePreset"
+                    {...rest}
+                  >
                     <img
                       className="sidebar__device-image"
                       alt={label}
-                      src={models.find(({ name }) => name === deviceType).renders[index]}
+                      src={devices.find(({ name }) => name === device).renders[index]}
                     />
                   </Preset>
                 ))}
@@ -290,7 +260,7 @@ const Plugin = () => {
             <div className="sidebar__control">
               <div className="input">
                 <label className="input__label" id="13-label" htmlFor="13-input">
-                  Device Color
+                  Model Color
                 </label>
                 <div className="dropdown">
                   <button

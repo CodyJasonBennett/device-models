@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import Model from 'components/Model';
+import Device from 'components/Device';
 import { StoryContainer } from '../../../.storybook/StoryContainer';
 import iphoneTexture from 'assets/iphone-preview.jpg';
 import macbookTexture from 'assets/macbook-preview.jpg';
@@ -14,21 +14,21 @@ const style = {
   height: '100%',
 };
 
-const ModelPreview = ({ color = '#FFFFFF', ...rest }) => {
+const DevicePreview = ({ color = '#FFFFFF', ...rest }) => {
   const ref = useRef();
 
   return (
     <StoryContainer padding={0}>
       <div style={style}>
-        <Model ref={ref} color="#FFFFFF" {...rest} />
+        <Device ref={ref} color="#FFFFFF" {...rest} />
       </div>
     </StoryContainer>
   );
 };
 
 export default {
-  title: 'Model',
+  title: 'Devices',
 };
 
-export const phone = () => <ModelPreview device="iPhone" texture={iphoneTexture} />;
-export const laptop = () => <ModelPreview device="Macbook" texture={macbookTexture} />;
+export const phone = () => <DevicePreview device="iPhone" texture={iphoneTexture} />;
+export const laptop = () => <DevicePreview device="Macbook" texture={macbookTexture} />;

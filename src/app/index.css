@@ -11,7 +11,6 @@ body {
   font-weight: var(--fontWeightRegular);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  background: rgb(var(--rgbBackground));
   color: var(--colorTextBody);
   border: 0;
   margin: 0;

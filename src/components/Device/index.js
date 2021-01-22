@@ -20,7 +20,7 @@ import { delay, chain, spring, value } from 'popmotion';
 import { usePrefersReducedMotion } from 'hooks';
 import { cleanScene, cleanRenderer, removeLights } from 'utils/three';
 import { numToMs } from 'utils/style';
-import models from './models';
+import devices from './devices';
 import './index.css';
 
 const MeshType = {
@@ -29,7 +29,7 @@ const MeshType = {
   Screen: 'Screen',
 };
 
-const Model = forwardRef(
+const Device = forwardRef(
   (
     {
       showDelay = 200,
@@ -42,15 +42,15 @@ const Model = forwardRef(
       cameraRotation = [0, 0, 0],
       ...rest
     },
-    ref
+    canvas
   ) => {
-    const [modelData, setModelData] = useState();
+    const [deviceData, setDeviceData] = useState();
     const [loaded, setLoaded] = useState(false);
     const container = useRef();
     const camera = useRef();
     const textureLoader = useRef();
-    const modelLoader = useRef();
-    const modelGroup = useRef();
+    const deviceLoader = useRef();
+    const deviceGroup = useRef();
     const scene = useRef();
     const renderer = useRef();
     const lights = useRef();
@@ -78,9 +78,9 @@ const Model = forwardRef(
       const { clientWidth, clientHeight } = container.current;
 
       renderer.current = new WebGLRenderer({
-        canvas: ref.current,
+        canvas: canvas.current,
         alpha: true,
-        antialias: false,
+        antialias: true,
         powerPreference: 'high-performance',
         preserveDrawingBuffer: true,
       });
@@ -95,8 +95,8 @@ const Model = forwardRef(
       scene.current = new Scene();
 
       textureLoader.current = new TextureLoader();
-      modelLoader.current = new GLTFLoader();
-      modelGroup.current = new Object3D();
+      deviceLoader.current = new GLTFLoader();
+      deviceGroup.current = new Object3D();
 
       // Lighting
       const ambientLight = new AmbientLight(0xffffff, 1.2);
@@ -108,16 +108,16 @@ const Model = forwardRef(
       lights.current = [ambientLight, keyLight, fillLight];
       lights.current.forEach(light => scene.current.add(light));
 
-      // Build an array of promises to fetch and apply models & animations
-      const modelConfigPromises = models
-        .filter(model => model.name === device)
+      // Build an array of promises to fetch and apply devices & animations
+      const deviceConfigPromises = devices
+        .filter(({ name }) => name === device)
         .map(async ({ url }, index) => {
-          const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
+          const gltf = await Promise.resolve(await deviceLoader.current.loadAsync(url));
 
-          return modelGroup.current.add(gltf.scene);
+          return deviceGroup.current.add(gltf.scene);
         });
 
-      setModelData(modelConfigPromises);
+      setDeviceData(deviceConfigPromises);
 
       controls.current = new OrbitControls(camera.current, renderer.current.domElement);
       controls.current.enableDamping = true;
@@ -136,44 +136,44 @@ const Model = forwardRef(
     }, []);
 
     useEffect(() => {
-      if (!modelData) return;
+      if (!deviceData) return;
 
-      scene.current.add(modelGroup.current);
+      scene.current.add(deviceGroup.current);
 
       const loadScene = async () => {
-        const loadedModels = await Promise.all(modelData);
+        const loadedDevices = await Promise.all(deviceData);
 
         setLoaded(true);
 
-        const handleModelLoad = loadedModels.map(model => {
+        const handleDeviceLoad = loadedDevices.map(device => {
           // Render the loaded texture
           if (reduceMotion) {
             renderFrame();
           }
 
-          return model;
+          return device;
         });
 
-        await Promise.all(handleModelLoad);
+        await Promise.all(handleDeviceLoad);
       };
 
       loadScene();
-    }, [modelData, reduceMotion, renderFrame]);
+    }, [deviceData, reduceMotion, renderFrame]);
 
     useEffect(() => {
       if (!loaded) return;
 
       const [x, y, z] = deviceRotation;
 
-      const startRotation = new Vector3(...modelGroup.current.rotation.toArray());
+      const startRotation = new Vector3(...deviceGroup.current.rotation.toArray());
       const endRotation = new Vector3(
         MathUtils.degToRad(x),
         MathUtils.degToRad(y),
         MathUtils.degToRad(z)
       );
 
-      const modelValue = value(modelGroup.current.rotation, ({ x, y, z }) => {
-        modelGroup.current.rotation.set(x, y, z);
+      const deviceValue = value(deviceGroup.current.rotation, ({ x, y, z }) => {
+        deviceGroup.current.rotation.set(x, y, z);
       });
 
       const transformation = chain(
@@ -187,10 +187,14 @@ const Model = forwardRef(
         })
       );
 
-      const animation = transformation.start(modelValue);
+      const animation = transformation.start(deviceValue);
+      const cancelAnimation = () => animation.stop();
+
+      canvas.current.addEventListener('pointerdown', cancelAnimation);
 
       return () => {
-        animation.stop();
+        cancelAnimation();
+        canvas.current.removeEventListener('pointerdown', cancelAnimation);
       };
     }, [loaded, deviceRotation, showDelay]);
 
@@ -207,7 +211,7 @@ const Model = forwardRef(
       const xAxis = new Vector3(-1, 0, 0);
       const yAxis = new Vector3(0, -1, 0);
 
-      const modelValue = value(controls.current.object.rotation, ({ x, y }) => {
+      const deviceValue = value(controls.current.object.rotation, ({ x, y }) => {
         const axes = [xAxis, yAxis];
 
         [
@@ -237,17 +241,21 @@ const Model = forwardRef(
         })
       );
 
-      const animation = transformation.start(modelValue);
+      const animation = transformation.start(deviceValue);
+      const cancelAnimation = () => animation.stop();
+
+      canvas.current.addEventListener('pointerdown', cancelAnimation);
 
       return () => {
-        animation.stop();
+        cancelAnimation();
+        canvas.current.removeEventListener('pointerdown', cancelAnimation);
       };
     }, [loaded, cameraRotation, showDelay]);
 
     useEffect(() => {
       if (!loaded) return;
 
-      modelGroup.current.traverse(async node => {
+      deviceGroup.current.traverse(async node => {
         if (node.material && node.name !== MeshType.Screen) {
           node.material.color = new Color(color);
           node.material.color.convertSRGBToLinear();
@@ -258,7 +266,7 @@ const Model = forwardRef(
     useMemo(() => {
       if (!loaded) return;
 
-      modelGroup.current.traverse(async node => {
+      deviceGroup.current.traverse(async node => {
         if (node.name === MeshType.Screen) {
           const image = await textureLoader.current.loadAsync(texture);
 
@@ -303,18 +311,18 @@ const Model = forwardRef(
 
     return (
       <div
-        className={classNames('model', { 'model--loaded': loaded }, className)}
+        className={classNames('device', { 'device--loaded': loaded }, className)}
         style={{ '--delay': numToMs(showDelay), ...style }}
         ref={container}
         role="img"
         aria-label="Device Preview"
         {...rest}
       >
-        <canvas className="model__canvas" ref={ref} />
+        <canvas className="device__canvas" ref={canvas} />
       </div>
     );
   }
 );
 
-export default Model;
-export { models };
+export default Device;
+export { devices };

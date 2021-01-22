@@ -13,7 +13,7 @@ import macbookFrontRight from 'assets/macbook-front-right.png';
 import macbookTiltedLeft from 'assets/macbook-tilted-left.png';
 import macbookTiltedRight from 'assets/macbook-tilted-right.png';
 
-const models = [
+const devices = [
   {
     name: 'iPhone',
     url: iphoneModel,
@@ -44,4 +44,4 @@ const models = [
   },
 ];
 
-export default models;
+export default devices;
