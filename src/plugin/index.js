@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect, useMemo, Fragment, Suspense } from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
+import { MathUtils } from 'three';
 import ThemeProvider from 'components/ThemeProvider';
 import { SwitchTransition, Transition } from 'react-transition-group';
 import Tooltip from 'components/Tooltip';
-import Device, { devices } from 'components/Device';
+import Model from 'components/Model';
 import Spinner from 'components/Spinner';
 import Dropdown from 'components/Dropdown';
 import Input from 'components/Input';
@@ -12,25 +13,61 @@ import Button from 'components/Button';
 import { useFormInput } from 'hooks';
 import { getImage, getImageBlob } from 'utils/image';
 import { reflow } from 'utils/transition';
+import deviceModels from 'components/Model/deviceModels';
 import presets from './presets';
 import './index.css';
 
+const devices = Object.values(deviceModels);
 const [defaultDevice] = devices;
-const [defaultPreset] = presets;
 
 const Plugin = () => {
   const canvas = useRef();
   const [texture, setTexture] = useState(defaultDevice.texture);
   const [device, setDevice] = useState(defaultDevice.name);
-  const [preset, setPreset] = useState();
-  const [deviceRotation, setDeviceRotation] = useState(defaultPreset.deviceRotation);
-  const [cameraRotation, setCameraRotation] = useState(defaultPreset.cameraRotation);
-  const deviceX = useFormInput(deviceRotation[0]);
-  const deviceY = useFormInput(deviceRotation[1]);
-  const deviceZ = useFormInput(deviceRotation[2]);
-  const cameraX = useFormInput(cameraRotation[0]);
-  const cameraY = useFormInput(cameraRotation[1]);
-  const deviceColor = useFormInput('#FFFFFF');
+  const [preset, setPreset] = useState(0);
+  const { deviceRotation, cameraRotation } = presets[preset];
+  const deviceX = useFormInput(deviceRotation.x);
+  const deviceY = useFormInput(deviceRotation.y);
+  const deviceZ = useFormInput(deviceRotation.z);
+  const cameraX = useFormInput(cameraRotation.x);
+  const cameraY = useFormInput(cameraRotation.y);
+  const color = useFormInput('#FFFFFF');
+
+  const modelSettings = useMemo(() => {
+    const cameraRotation = {
+      x: MathUtils.degToRad(cameraX.value),
+      y: MathUtils.degToRad(cameraY.value),
+      z: 0,
+    };
+    const deviceRotation = {
+      x: MathUtils.degToRad(deviceX.value),
+      y: MathUtils.degToRad(deviceY.value),
+      z: MathUtils.degToRad(deviceZ.value),
+    };
+
+    return {
+      cameraRotation,
+      models: [
+        {
+          ...devices.find(({ name }) => name === device),
+          rotation: deviceRotation,
+          color: color.value,
+          texture: {
+            src: texture,
+          },
+        },
+      ],
+    };
+  }, [
+    cameraX.value,
+    cameraY.value,
+    deviceX.value,
+    deviceY.value,
+    deviceZ.value,
+    device,
+    color.value,
+    texture,
+  ]);
 
   useEffect(() => {
     window.onmessage = async event => {
@@ -52,18 +89,6 @@ const Plugin = () => {
       setTexture(activeDevice.texture);
     }
   }, [device, texture]);
-
-  useMemo(() => {
-    const deviceRotation = [deviceX.value, deviceY.value, deviceZ.value];
-
-    setDeviceRotation(deviceRotation);
-  }, [deviceX.value, deviceY.value, deviceZ.value]);
-
-  useMemo(() => {
-    const cameraRotation = [cameraX.value, cameraY.value];
-
-    setCameraRotation(cameraRotation);
-  }, [cameraX.value, cameraY.value]);
 
   const createEmptyFrame = event => {
     event.preventDefault();
@@ -106,14 +131,7 @@ const Plugin = () => {
     );
   };
 
-  const Preset = ({
-    index,
-    label,
-    deviceRotation,
-    cameraRotation,
-    children,
-    ...rest
-  }) => {
+  const Preset = ({ index, label, children, ...rest }) => {
     const presetRef = useRef();
     const [isHovered, setIsHovered] = useState(false);
 
@@ -122,9 +140,6 @@ const Plugin = () => {
       event.stopPropagation();
 
       setPreset(index);
-
-      setDeviceRotation(deviceRotation);
-      setCameraRotation(cameraRotation);
     };
 
     return (
@@ -165,14 +180,7 @@ const Plugin = () => {
               {status => (
                 <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
                   <Suspense fallback={<Spinner />}>
-                    <Device
-                      ref={canvas}
-                      texture={texture}
-                      device={device}
-                      color={deviceColor.value}
-                      deviceRotation={deviceRotation}
-                      cameraRotation={cameraRotation}
-                    />
+                    <Model ref={canvas} {...modelSettings} />
                   </Suspense>
                 </div>
               )}
@@ -191,13 +199,12 @@ const Plugin = () => {
                 Angle Preset
               </div>
               <div className="sidebar__devices" data-scroll="true">
-                {presets.map(({ label, ...rest }, index) => (
+                {presets.map(({ label }, index) => (
                   <Preset
                     key={index}
                     index={index}
                     label={label}
                     aria-describedby="anglePreset"
-                    {...rest}
                   >
                     <img
                       className="sidebar__device-image"
@@ -269,7 +276,7 @@ const Plugin = () => {
                     id="dropdown-button-12"
                     aria-expanded="true"
                     aria-label="Choose color style"
-                    style={{ backgroundColor: deviceColor.value }}
+                    style={{ backgroundColor: color.value }}
                   />
                 </div>
                 <input
@@ -277,7 +284,7 @@ const Plugin = () => {
                   id="13-input"
                   aria-labelledby="13-label"
                   type="text"
-                  {...deviceColor}
+                  {...color}
                 />
               </div>
             </div>

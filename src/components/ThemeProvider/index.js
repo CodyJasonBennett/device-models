@@ -1,4 +1,4 @@
-import { createContext, Fragment } from 'react';
+import { createContext, useMemo, useEffect, Fragment } from 'react';
 import { Helmet } from 'react-helmet';
 import classNames from 'classnames';
 import useTheme from './useTheme';
@@ -43,9 +43,19 @@ const ThemeProvider = ({
   inline,
 }) => {
   const colorScheme = usePrefersColorScheme();
-  const currentTheme = { ...theme[themeId || colorScheme], ...themeOverrides };
+  const currentTheme = useMemo(() => {
+    return { ...theme[colorScheme || themeId], ...themeOverrides };
+  }, [colorScheme, themeId, themeOverrides]);
   const parentTheme = useTheme();
   const isRootProvider = inline || !parentTheme.themeId;
+
+  // Save root theme id to localstorage and apply class to body
+  useEffect(() => {
+    if (isRootProvider) {
+      document.body.classList.remove('light', 'dark');
+      document.body.classList.add(currentTheme.themeId);
+    }
+  }, [isRootProvider, currentTheme]);
 
   return (
     <ThemeContext.Provider value={currentTheme}>
@@ -131,13 +141,14 @@ function createMediaTokenProperties() {
 export const tokenStyles = `
   :root {
     ${createThemeProperties(tokens.base)}
-    ${createThemeProperties(theme.light)}
   }
 
-  @media (prefers-color-scheme: dark) {
-    body {
-      ${createThemeProperties(theme.dark)}
-    }
+  .dark {
+    ${createThemeProperties(theme.dark)}
+  }
+
+  .light {
+    ${createThemeProperties(theme.light)}
   }
 
   ${createMediaTokenProperties()}

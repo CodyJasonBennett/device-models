@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "https://www.figma.com/community/plugin/906973799344127422" }
+    { "source": "/index.html", "destination": "/" },
+    { "source": "/install", "destination": "https://www.figma.com/community/plugin/906973799344127422" }
   ],
   "github": {
     "silent": true

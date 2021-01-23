@@ -6,7 +6,6 @@ import {
   Color,
   TextureLoader,
   Vector3,
-  MathUtils,
   Object3D,
   AmbientLight,
   DirectionalLight,
@@ -17,10 +16,10 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { delay, chain, spring, value } from 'popmotion';
+import { getImageFromSrcSet } from 'utils/image';
 import { usePrefersReducedMotion } from 'hooks';
 import { cleanScene, cleanRenderer, removeLights } from 'utils/three';
 import { numToMs } from 'utils/style';
-import devices from './devices';
 import './index.css';
 
 const MeshType = {
@@ -29,28 +28,29 @@ const MeshType = {
   Screen: 'Screen',
 };
 
-const Device = forwardRef(
+const Model = forwardRef(
   (
     {
+      models,
+      show = true,
       showDelay = 200,
-      texture,
-      color,
-      device,
+      cameraPosition = { x: 0, y: 0, z: 8 },
+      cameraRotation = { x: 0, y: 0, z: 0 },
+      controls: controlOverrides,
       style,
       className,
-      deviceRotation = [0, 0, 0],
-      cameraRotation = [0, 0, 0],
+      alt,
       ...rest
     },
     canvas
   ) => {
-    const [deviceData, setDeviceData] = useState();
+    const [modelData, setModelData] = useState();
     const [loaded, setLoaded] = useState(false);
     const container = useRef();
     const camera = useRef();
     const textureLoader = useRef();
-    const deviceLoader = useRef();
-    const deviceGroup = useRef();
+    const modelLoader = useRef();
+    const modelGroup = useRef();
     const scene = useRef();
     const renderer = useRef();
     const lights = useRef();
@@ -91,12 +91,12 @@ const Device = forwardRef(
       renderer.current.physicallyCorrectLights = true;
 
       camera.current = new PerspectiveCamera(36, clientWidth / clientHeight, 0.1, 100);
-      camera.current.position.set(0, 0, 8);
+      camera.current.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
       scene.current = new Scene();
 
       textureLoader.current = new TextureLoader();
-      deviceLoader.current = new GLTFLoader();
-      deviceGroup.current = new Object3D();
+      modelLoader.current = new GLTFLoader();
+      modelGroup.current = new Object3D();
 
       // Lighting
       const ambientLight = new AmbientLight(0xffffff, 1.2);
@@ -108,19 +108,43 @@ const Device = forwardRef(
       lights.current = [ambientLight, keyLight, fillLight];
       lights.current.forEach(light => scene.current.add(light));
 
-      // Build an array of promises to fetch and apply devices & animations
-      const deviceConfigPromises = devices
-        .filter(({ name }) => name === device)
-        .map(async ({ url }, index) => {
-          const gltf = await Promise.resolve(await deviceLoader.current.loadAsync(url));
+      // Build an array of promises to fetch and apply models & animations
+      const deviceConfigPromises = models.map(async (model, index) => {
+        const { url, color, texture, position, rotation } = model;
+        let loadFullResTexture;
 
-          return deviceGroup.current.add(gltf.scene);
+        const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
+        const placeholder = texture?.placeholder && await Promise.resolve(await textureLoader.current.loadAsync(texture.placeholder));
+
+        gltf.scene.traverse(node => {
+          if (node.material) {
+            node.material.color = new Color(color);
+            node.material.color.convertSRGBToLinear();
+          }
+
+          if (node.name === MeshType.Screen) {
+            if (placeholder) applyScreenTexture(placeholder, node);
+
+            loadFullResTexture = async () => {
+              const image = await getImageFromSrcSet(texture);
+              const fullSize = await textureLoader.current.loadAsync(image);
+              await applyScreenTexture(fullSize, node);
+            };
+          }
         });
 
-      setDeviceData(deviceConfigPromises);
+        gltf.scene.position.set(position.x, position.y, position.z);
+        gltf.scene.rotation.set(rotation.x, rotation.y, rotation.z);
+
+        modelGroup.current.add(gltf.scene);
+
+        return { model, gltf, loadFullResTexture };
+      });
+
+      setModelData(deviceConfigPromises);
 
       controls.current = new OrbitControls(camera.current, renderer.current.domElement);
-      controls.current.enableDamping = true;
+      Object.assign(controls.current, controlOverrides);
 
       return () => {
         removeLights(lights.current);
@@ -136,87 +160,93 @@ const Device = forwardRef(
     }, []);
 
     useEffect(() => {
-      if (!deviceData) return;
+      if (!modelData) return;
 
-      scene.current.add(deviceGroup.current);
+      scene.current.add(modelGroup.current);
 
       const loadScene = async () => {
-        const loadedDevices = await Promise.all(deviceData);
+        const loadedModels = await Promise.all(modelData);
 
-        setLoaded(true);
+        const handleModelLoad = loadedModels.map(async model => {
+          if (reduceMotion) {
+            renderFrame();
+          }
 
-        const handleDeviceLoad = loadedDevices.map(device => {
+          // Load full res screen texture
+          await model.loadFullResTexture();
+
           // Render the loaded texture
           if (reduceMotion) {
             renderFrame();
           }
 
-          return device;
+          return model;
         });
 
-        await Promise.all(handleDeviceLoad);
+        await Promise.all(handleModelLoad);
+        setLoaded(true);
       };
 
       loadScene();
-    }, [deviceData, reduceMotion, renderFrame]);
+    }, [modelData, reduceMotion, renderFrame]);
 
-    useEffect(() => {
+    useMemo(() => {
       if (!loaded) return;
 
-      const [x, y, z] = deviceRotation;
+      const springs = [];
 
-      const startRotation = new Vector3(...deviceGroup.current.rotation.toArray());
-      const endRotation = new Vector3(
-        MathUtils.degToRad(x),
-        MathUtils.degToRad(y),
-        MathUtils.degToRad(z)
-      );
+      models.forEach(({ name, rotation }, index) => {
+        const model = modelGroup.current.children[index];
 
-      const deviceValue = value(deviceGroup.current.rotation, ({ x, y, z }) => {
-        deviceGroup.current.rotation.set(x, y, z);
+        const startRotation = new Vector3(...model.rotation.toArray());
+        const endRotation = new Vector3(rotation.x, rotation.y, rotation.z);
+
+        const deviceValue = value(model.rotation, ({ x, y, z }) => {
+          model.rotation.set(x, y, z);
+        });
+
+        const transformation = chain(
+          delay(300 + showDelay * 0.6),
+          spring({
+            from: startRotation,
+            to: endRotation,
+            stiffness: 60,
+            damping: 16,
+            restSpeed: 0.001,
+          })
+        );
+
+        const animation = transformation.start(deviceValue);
+        springs.push(animation);
       });
 
-      const transformation = chain(
-        delay(300 + showDelay * 0.6),
-        spring({
-          from: startRotation,
-          to: endRotation,
-          stiffness: 60,
-          damping: 16,
-          restSpeed: 0.001,
-        })
-      );
-
-      const animation = transformation.start(deviceValue);
-      const cancelAnimation = () => animation.stop();
-
-      canvas.current.addEventListener('pointerdown', cancelAnimation);
-
       return () => {
-        cancelAnimation();
-        canvas.current.removeEventListener('pointerdown', cancelAnimation);
+        springs.forEach(spring => spring.stop());
       };
-    }, [loaded, deviceRotation, showDelay]);
+    }, [loaded, models, showDelay]);
 
-    useEffect(() => {
+    useMemo(() => {
       if (!loaded) return;
 
-      const [x, y] = cameraRotation;
-
       const startRotation = new Vector3(...controls.current.object.rotation.toArray());
-      const endRotation = new Vector3(MathUtils.degToRad(x), MathUtils.degToRad(y), 0);
+      const endRotation = new Vector3(
+        cameraRotation.x,
+        cameraRotation.y,
+        cameraRotation.z
+      );
 
       const center = new Vector3(0, 0, 0);
 
       const xAxis = new Vector3(-1, 0, 0);
       const yAxis = new Vector3(0, -1, 0);
+      const zAxis = new Vector3(0, 0, -1);
+      const axes = [xAxis, yAxis, zAxis];
 
-      const deviceValue = value(controls.current.object.rotation, ({ x, y }) => {
-        const axes = [xAxis, yAxis];
-
+      const deviceValue = value(controls.current.object.rotation, ({ x, y, z }) => {
         [
           controls.current.object.rotation.x - x,
           controls.current.object.rotation.y - y,
+          controls.current.object.rotation.z - z,
         ].forEach((theta, index) => {
           const axis = axes[index];
 
@@ -226,8 +256,6 @@ const Device = forwardRef(
 
           controls.current.object.rotateOnAxis(axis, theta);
         });
-
-        controls.current.update();
       });
 
       const transformation = chain(
@@ -242,38 +270,49 @@ const Device = forwardRef(
       );
 
       const animation = transformation.start(deviceValue);
-      const cancelAnimation = () => animation.stop();
-
-      canvas.current.addEventListener('pointerdown', cancelAnimation);
 
       return () => {
-        cancelAnimation();
-        canvas.current.removeEventListener('pointerdown', cancelAnimation);
+        animation.stop();
       };
     }, [loaded, cameraRotation, showDelay]);
 
     useEffect(() => {
       if (!loaded) return;
 
-      deviceGroup.current.traverse(async node => {
-        if (node.material && node.name !== MeshType.Screen) {
-          node.material.color = new Color(color);
-          node.material.color.convertSRGBToLinear();
-        }
-      });
-    }, [loaded, color]);
+      models.forEach(({ color }, index) => {
+        const model = modelGroup.current.children[index];
 
-    useMemo(() => {
+        model.traverse(async node => {
+          if (node.material && node.name !== MeshType.Screen) {
+            node.material.color = new Color(color);
+            node.material.color.convertSRGBToLinear();
+          }
+        });
+      });
+    }, [loaded, models]);
+
+    useEffect(() => {
       if (!loaded) return;
 
-      deviceGroup.current.traverse(async node => {
-        if (node.name === MeshType.Screen) {
-          const image = await textureLoader.current.loadAsync(texture);
+      models.forEach(({ texture }, index) => {
+        const model = modelGroup.current.children[index];
 
-          await applyScreenTexture(image, node);
-        }
+        model.traverse(async node => {
+          if (node.name === MeshType.Screen) {
+            if (texture.placeholder) {
+              const placeholder = await textureLoader.current.loadAsync(
+                texture.placeholder
+              );
+              applyScreenTexture(placeholder, node);
+            }
+
+            const image = await getImageFromSrcSet(texture);
+            const fullSize = await textureLoader.current.loadAsync(image);
+            await applyScreenTexture(fullSize, node);
+          }
+        });
       });
-    }, [loaded, texture]);
+    }, [loaded, models]);
 
     // Handle window resize
     useEffect(() => {
@@ -297,6 +336,8 @@ const Device = forwardRef(
 
     useEffect(() => {
       const animate = () => {
+        if (controls.current.enableDamping) controls.current.update();
+
         renderFrame();
       };
 
@@ -311,18 +352,17 @@ const Device = forwardRef(
 
     return (
       <div
-        className={classNames('device', { 'device--loaded': loaded }, className)}
+        className={classNames('model', { 'model--loaded': loaded }, className)}
         style={{ '--delay': numToMs(showDelay), ...style }}
         ref={container}
         role="img"
-        aria-label="Device Preview"
+        aria-label="Model Preview"
         {...rest}
       >
-        <canvas className="device__canvas" ref={canvas} />
+        <canvas className="model__canvas" ref={canvas} />
       </div>
     );
   }
 );
 
-export default Device;
-export { devices };
+export default Model;

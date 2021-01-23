@@ -1,6 +1,4 @@
-.device {
-  grid-column: 1;
-  grid-row: 1;
+.model {
   position: relative;
   display: flex;
   align-items: center;
@@ -8,7 +6,7 @@
   overflow: hidden;
 }
 
-.device__canvas {
+.model__canvas {
   position: absolute;
   top: 0;
   right: 0;
@@ -19,10 +17,10 @@
   transition: opacity 0.4s ease;
 }
 
-.device__canvas--loading {
+.model__canvas--loading {
   opacity: 0;
 }
 
-.device__canvas:active {
+.model__canvas:active {
   cursor: grabbing;
 }

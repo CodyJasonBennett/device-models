@@ -5,11 +5,11 @@ const systemFontStack =
 
 // Full list of tokens
 const baseTokens = {
-  rgbBlack: '0 0 0',
-  rgbWhite: '255 255 255',
-  rgbBackground: '255 185 97',
-  rgbPrimary: '24 160 251',
-  rgbAccent: '24 160 251',
+  rgbBlack: '0, 0, 0',
+  rgbWhite: '255, 255, 255',
+  rgbBackground: '255, 185, 97',
+  rgbPrimary: '24, 160, 251',
+  rgbAccent: '24, 160, 251',
   bezierFastoutSlowin: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
   durationXS: '200ms',
   durationS: '300ms',
@@ -32,7 +32,7 @@ const baseTokens = {
   fontSizeBodyS: pxToRem(16),
   fontSizeBodyXS: pxToRem(14),
   lineHeightTitle: '1.1',
-  lineHeightBody: '1.5',
+  lineHeightBody: '1.4',
   maxWidthS: '540px',
   maxWidthM: '720px',
   maxWidthL: '1096px',

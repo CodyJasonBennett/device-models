@@ -1,28 +1,28 @@
 const presets = [
   {
     label: 'Front Left',
-    deviceRotation: [-10, 0, 0],
-    cameraRotation: [0, 30],
+    deviceRotation: { x: -10, y: 0, z: 0 },
+    cameraRotation: { x: 0, y: 30, z: 0 },
   },
   {
     label: 'Front',
-    deviceRotation: [0, 0, 0],
-    cameraRotation: [0, 0],
+    deviceRotation: { x: 0, y: 0, z: 0 },
+    cameraRotation: { x: 0, y: 0, z: 0 },
   },
   {
     label: 'Front Right',
-    deviceRotation: [-10, 0, 0],
-    cameraRotation: [0, -30],
+    deviceRotation: { x: -10, y: 0, z: 0 },
+    cameraRotation: { x: 0, y: -30, z: 0 },
   },
   {
     label: 'Tilted Left',
-    deviceRotation: [-10, 0, 20],
-    cameraRotation: [0, -20],
+    deviceRotation: { x: -10, y: 0, z: 20 },
+    cameraRotation: { x: 0, y: -20, z: 0 },
   },
   {
     label: 'Tilted Right',
-    deviceRotation: [-10, 0, -20],
-    cameraRotation: [0, 20],
+    deviceRotation: { x: -10, y: 0, z: -20 },
+    cameraRotation: { x: 0, y: 20, z: 0 },
   },
 ];
 
