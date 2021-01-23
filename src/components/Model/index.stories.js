@@ -1,35 +1,48 @@
+import { useRef } from 'react';
 import Model from 'components/Model';
 import { StoryContainer } from '../../../.storybook/StoryContainer';
 import deviceModels from './deviceModels';
+
+const modelStyle = { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 };
+
+const ModelWrapper = props => {
+  const canvas = useRef();
+
+  return (
+    <StoryContainer padding={0}>
+      <Model
+        ref={canvas}
+        style={modelStyle}
+        controls={{ enableDamping: true }}
+        {...props}
+      />
+    </StoryContainer>
+  );
+};
 
 export default {
   title: 'Model',
 };
 
-const modelStyle = { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 };
-
 export const phone = () => (
-  <StoryContainer padding={0}>
-    <Model
-      style={modelStyle}
-      cameraPosition={{ x: 0, y: 0, z: 11.5 }}
-      alt="Phone models"
-      models={[
-        {
-          ...deviceModels.iphone11,
-          position: { x: -0.6, y: 0.8, z: 0.1 },
-        },
-        {
-          ...deviceModels.iphone11,
-          position: { x: 0.6, y: -0.8, z: 0.4 },
-        },
-      ]}
-    />
-  </StoryContainer>
+  <ModelWrapper
+    cameraPosition={{ x: 0, y: 0, z: 10 }}
+    alt="Phone Models"
+    models={[
+      {
+        ...deviceModels.iphone11,
+        position: { x: -1.2, y: -0.4, z: 0.1 },
+        rotation: { x: -0.4, y: 0.4, z: 0.2 },
+      },
+      {
+        ...deviceModels.iphone11,
+        position: { x: 0.6, y: 0.4, z: 1.2 },
+        rotation: { x: 0, y: -0.6, z: -0.2 },
+      },
+    ]}
+  />
 );
 
 export const laptop = () => (
-  <StoryContainer padding={0}>
-    <Model style={modelStyle} alt="Laptop Model" models={[deviceModels.macbookPro]} />
-  </StoryContainer>
+  <ModelWrapper alt="Laptop Model" models={[deviceModels.macbookPro]} />
 );

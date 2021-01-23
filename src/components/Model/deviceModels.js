@@ -22,7 +22,7 @@ const models = {
     color: 0xffffff,
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
-    texture: iphone11Texture,
+    texture: { src: iphone11Texture },
     renders: [
       iphone11FrontLeft,
       iphone11Front,
@@ -39,7 +39,7 @@ const models = {
     color: 0xffffff,
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
-    texture: macbookProTexture,
+    texture: { src: macbookProTexture },
     renders: [
       macbookProFrontLeft,
       macbookProFront,

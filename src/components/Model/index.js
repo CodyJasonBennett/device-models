@@ -39,7 +39,7 @@ const Model = forwardRef(
       controls: controlOverrides,
       style,
       className,
-      alt,
+      alt = 'Model Preview',
       ...rest
     },
     canvas
@@ -356,7 +356,7 @@ const Model = forwardRef(
         style={{ '--delay': numToMs(showDelay), ...style }}
         ref={container}
         role="img"
-        aria-label="Model Preview"
+        aria-label={alt}
         {...rest}
       >
         <canvas className="model__canvas" ref={canvas} />

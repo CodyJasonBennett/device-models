@@ -22,7 +22,7 @@ const [defaultDevice] = devices;
 
 const Plugin = () => {
   const canvas = useRef();
-  const [texture, setTexture] = useState(defaultDevice.texture);
+  const [texture, setTexture] = useState(defaultDevice.texture.src);
   const [device, setDevice] = useState(defaultDevice.name);
   const [preset, setPreset] = useState(0);
   const { deviceRotation, cameraRotation } = presets[preset];
@@ -72,7 +72,7 @@ const Plugin = () => {
   useEffect(() => {
     window.onmessage = async event => {
       const selection = event.data.pluginMessage;
-      if (!selection) return setTexture(defaultDevice.texture);
+      if (!selection) return setTexture(defaultDevice.texture.src);
 
       const blob = new Blob([selection], { type: 'image/png' });
 
