@@ -2,10 +2,10 @@ import Link from 'components/Link';
 import { StoryContainer } from '../../../.storybook/StoryContainer';
 
 export default {
-  title: 'Link',
+  title: 'Links',
 };
 
-export const Default = () => (
+export const links = () => (
   <StoryContainer style={{ fontSize: 18 }}>
     <Link href="#" onClick={e => e.preventDefault()}>
       Primary Link

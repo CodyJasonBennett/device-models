@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo, Fragment, Suspense } from 'react';
+import { useRef, useState, useMemo, useEffect, Fragment, Suspense } from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
 import { MathUtils } from 'three';
@@ -33,41 +33,49 @@ const Plugin = () => {
   const cameraY = useFormInput(cameraRotation.y);
   const color = useFormInput('#FFFFFF');
 
-  const modelSettings = useMemo(() => {
-    const cameraRotation = {
-      x: MathUtils.degToRad(cameraX.value),
-      y: MathUtils.degToRad(cameraY.value),
-      z: 0,
-    };
-    const deviceRotation = {
-      x: MathUtils.degToRad(deviceX.value),
-      y: MathUtils.degToRad(deviceY.value),
-      z: MathUtils.degToRad(deviceZ.value),
-    };
+  const activeDevice = useMemo(() => devices.find(({ name }) => name === device), [
+    device,
+  ]);
 
-    return {
-      cameraRotation,
+  useMemo(() => {
+    if (devices.find(device => device.texture.src === texture)) {
+      setTexture(activeDevice.texture.src);
+    }
+  }, [texture, activeDevice.texture.src]);
+
+  const modelSettings = useMemo(
+    () => ({
+      cameraRotation: {
+        x: MathUtils.degToRad(cameraX.value),
+        y: MathUtils.degToRad(cameraY.value),
+        z: 0,
+      },
       models: [
         {
-          ...devices.find(({ name }) => name === device),
-          rotation: deviceRotation,
+          ...activeDevice,
+          rotation: {
+            x: MathUtils.degToRad(deviceX.value),
+            y: MathUtils.degToRad(deviceY.value),
+            z: MathUtils.degToRad(deviceZ.value),
+          },
           color: color.value,
           texture: {
             src: texture,
           },
         },
       ],
-    };
-  }, [
-    cameraX.value,
-    cameraY.value,
-    deviceX.value,
-    deviceY.value,
-    deviceZ.value,
-    device,
-    color.value,
-    texture,
-  ]);
+    }),
+    [
+      cameraX.value,
+      cameraY.value,
+      activeDevice,
+      deviceX.value,
+      deviceY.value,
+      deviceZ.value,
+      color.value,
+      texture,
+    ]
+  );
 
   useEffect(() => {
     window.onmessage = async event => {
@@ -82,19 +90,10 @@ const Plugin = () => {
     };
   }, []);
 
-  useMemo(() => {
-    const activeDevice = devices.find(({ name }) => name === device);
-
-    if (devices.find(device => device.texture === texture)) {
-      setTexture(activeDevice.texture);
-    }
-  }, [device, texture]);
-
   const createEmptyFrame = event => {
     event.preventDefault();
-    event.stopPropagation();
 
-    const { name, width, height } = devices.find(({ name }) => name === device);
+    const { name, width, height } = activeDevice;
 
     parent.postMessage(
       {
@@ -111,9 +110,7 @@ const Plugin = () => {
 
   const saveCanvasImage = async event => {
     event.preventDefault();
-    event.stopPropagation();
 
-    const { name } = devices.find(({ name }) => name === device);
     const { width, height } = await getImage(canvas.current.toDataURL());
     const blob = getImageBlob(canvas.current.toDataURL());
 
@@ -121,7 +118,7 @@ const Plugin = () => {
       {
         pluginMessage: {
           type: 'save-canvas-image',
-          name,
+          name: activeDevice.name,
           width,
           height,
           blob,
@@ -209,7 +206,7 @@ const Plugin = () => {
                     <img
                       className="sidebar__device-image"
                       alt={label}
-                      src={devices.find(({ name }) => name === device).renders[index]}
+                      src={activeDevice.renders[index]}
                     />
                   </Preset>
                 ))}

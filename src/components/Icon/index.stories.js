@@ -2,7 +2,7 @@ import Icon, { icons } from 'components/Icon';
 import { StoryContainer } from '../../../.storybook/StoryContainer';
 
 export default {
-  title: 'Icon',
+  title: 'Icons',
 };
 
 export const Icons = () => {
