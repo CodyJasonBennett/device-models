@@ -12,9 +12,6 @@ import socials from './socials';
 import deviceModels from 'components/Model/deviceModels';
 import iphone11 from 'assets/iphone-11.glb';
 import macbookPro from 'assets/macbook-pro.glb';
-import phoneTexture from 'assets/phone-texture.jpg';
-import phoneTextureLarge from 'assets/phone-texture-large.jpg';
-import phoneTexturePlaceholder from 'assets/phone-texture-placeholder.jpg';
 import './index.css';
 
 const Model = lazy(() => import('components/Model'));
@@ -76,21 +73,11 @@ const Home = () => {
                   ...deviceModels.iphone11,
                   position: { x: -1.2, y: -0.4, z: 0.1 },
                   rotation: { x: -0.4, y: 0.4, z: 0.2 },
-                  texture: {
-                    src: phoneTexture,
-                    srcSet: `${phoneTexture} 800w, ${phoneTextureLarge} 1440w`,
-                    placeholder: phoneTexturePlaceholder,
-                  },
                 },
                 {
                   ...deviceModels.iphone11,
                   position: { x: 0.6, y: 0.4, z: 1.2 },
                   rotation: { x: 0, y: -0.6, z: -0.2 },
-                  texture: {
-                    src: phoneTexture,
-                    srcSet: `${phoneTexture} 800w, ${phoneTextureLarge} 1440w`,
-                    placeholder: phoneTexturePlaceholder,
-                  },
                 },
               ]}
             />

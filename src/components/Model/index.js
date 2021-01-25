@@ -113,8 +113,10 @@ const Model = forwardRef(
         const { url, color, texture, position, rotation } = model;
         let loadFullResTexture;
 
-        const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
-        const placeholder = texture?.placeholder && await Promise.resolve(await textureLoader.current.loadAsync(texture.placeholder));
+        const [gltf, placeholder] = await Promise.all([
+          await modelLoader.current.loadAsync(url),
+          await textureLoader.current.loadAsync(texture.placeholder),
+        ]);
 
         gltf.scene.traverse(node => {
           if (node.material) {
@@ -123,7 +125,7 @@ const Model = forwardRef(
           }
 
           if (node.name === MeshType.Screen) {
-            if (placeholder) applyScreenTexture(placeholder, node);
+            applyScreenTexture(placeholder, node);
 
             loadFullResTexture = async () => {
               const image = await getImageFromSrcSet(texture);
@@ -195,7 +197,7 @@ const Model = forwardRef(
 
       const springs = [];
 
-      models.forEach(({ name, rotation }, index) => {
+      models.forEach(({ rotation }, index) => {
         const model = modelGroup.current.children[index];
 
         const startRotation = new Vector3(...model.rotation.toArray());
