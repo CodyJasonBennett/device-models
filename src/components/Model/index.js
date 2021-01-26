@@ -113,10 +113,10 @@ const Model = forwardRef(
         const { url, color, texture, position, rotation } = model;
         let loadFullResTexture;
 
-        const [gltf, placeholder] = await Promise.all([
-          await modelLoader.current.loadAsync(url),
-          await textureLoader.current.loadAsync(texture.placeholder),
-        ]);
+        const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
+        const placeholder =
+          texture?.placeholder &&
+          (await textureLoader.current.loadAsync(texture.placeholder));
 
         gltf.scene.traverse(node => {
           if (node.material) {
@@ -125,7 +125,7 @@ const Model = forwardRef(
           }
 
           if (node.name === MeshType.Screen) {
-            applyScreenTexture(placeholder, node);
+            if (texture?.placeholder) applyScreenTexture(placeholder, node);
 
             loadFullResTexture = async () => {
               const image = await getImageFromSrcSet(texture);
