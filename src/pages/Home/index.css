@@ -21,15 +21,16 @@
 
   @media (--mediaLaptop) {
     & {
-      padding-left: 180px;
+      padding-left: var(--space4XL);
     }
   }
 
   @media (--mediaTablet) {
     & {
-      padding: var(--spaceOuter);
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column-reverse;
       grid-row-gap: var(--spaceOuter);
+      padding: var(--spaceOuter);
     }
   }
 
@@ -85,7 +86,7 @@
       max-height: 100vh;
       position: relative;
       top: auto;
-      width: auto;
+      width: 100%;
     }
   }
 }
