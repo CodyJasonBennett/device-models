@@ -17,6 +17,11 @@ import macbookProFrontRight from 'assets/macbook-pro-front-right.png';
 import macbookProTiltedLeft from 'assets/macbook-pro-tilted-left.png';
 import macbookProTiltedRight from 'assets/macbook-pro-tilted-right.png';
 
+export const ModelAnimationType = {
+  SpringUp: 'spring-up',
+  LaptopOpen: 'laptop-open',
+};
+
 const models = {
   iphone11: {
     name: 'iPhone 11',
@@ -28,7 +33,7 @@ const models = {
     rotation: { x: 0, y: 0, z: 0 },
     texture: {
       src: iphone11Texture,
-      srcSet: `${iphone11Texture} 800w, ${iphone11TextureLarge} 1440w`,
+      srcSet: `${iphone11Texture} 254w, ${iphone11TextureLarge} 508w`,
       placeholder: iphone11TexturePlaceholder,
     },
     renders: [
@@ -38,6 +43,7 @@ const models = {
       iphone11TiltedLeft,
       iphone11TiltedRight,
     ],
+    animation: ModelAnimationType.SpringUp,
   },
   macbookPro: {
     name: 'Macbook Pro',
@@ -59,6 +65,7 @@ const models = {
       macbookProTiltedLeft,
       macbookProTiltedRight,
     ],
+    animation: ModelAnimationType.LaptopOpen,
   },
 };
 

@@ -64,9 +64,16 @@ const Home = () => {
           <Suspense fallback={null}>
             <Model
               ref={canvas}
+              animated
               className="intro__models"
               cameraPosition={{ x: 0, y: 0, z: 10 }}
-              controls={{ enableZoom: false, enableDamping: true }}
+              controls={{
+                enableZoom: false,
+                enablePan: false,
+                enableDamping: true,
+                maxPolarAngle: Math.PI / 2,
+                minPolarAngle: Math.PI / 2,
+              }}
               alt="Phone models"
               models={[
                 {

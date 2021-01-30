@@ -11,6 +11,7 @@ const ModelWrapper = props => {
   return (
     <StoryContainer padding={0}>
       <Model
+        animated
         ref={canvas}
         style={modelStyle}
         controls={{ enableDamping: true }}

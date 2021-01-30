@@ -11,6 +11,9 @@ const baseTokens = {
   rgbPrimary: '24, 160, 251',
   rgbAccent: '24, 160, 251',
   bezierFastoutSlowin: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+  colorTextTitle: 'rgb(36, 44, 57, 1)',
+  colorTextBody: 'rgb(36, 44, 57, 0.8)',
+  colorTextLight: 'rgb(36, 44, 57, 0.6)',
   durationXS: '200ms',
   durationS: '300ms',
   durationM: '400ms',
@@ -114,9 +117,6 @@ const dark = {
   rgbText: '200, 200, 200',
   rgbBorder: '60, 60, 60',
   rgbError: '255, 0, 60',
-  colorTextTitle: 'rgb(var(--rgbText), 1)',
-  colorTextBody: 'rgb(var(--rgbText), 0.8)',
-  colorTextLight: 'rgb(var(--rgbText), 0.6)',
 };
 
 const light = {
@@ -126,9 +126,6 @@ const light = {
   rgbText: '51, 51, 51',
   rgbBorder: '229, 229, 229',
   rgbError: '210, 14, 60',
-  colorTextTitle: 'rgb(var(--rgbText), 1)',
-  colorTextBody: 'rgb(var(--rgbText), 0.7)',
-  colorTextLight: 'rgb(var(--rgbText), 0.6)',
 };
 
 export const theme = { light, dark };

@@ -3,8 +3,6 @@
 }
 
 .intro {
-  --rgbText: 36, 44, 57;
-
   background: var(--rgbBackground);
   grid-template-columns: var(--maxWidthM) 1fr;
   grid-row-gap: 20px;
@@ -48,17 +46,14 @@
 }
 
 .intro__logo {
-  color: rgb(var(--rgbText));
   margin-bottom: var(--spaceL);
 }
 
 .intro__title {
-  color: rgb(var(--rgbText));
   margin-bottom: var(--spaceXL);
 }
 
 .intro__description {
-  color: rgb(var(--rgbText), 0.8);
   letter-spacing: 1.1px;
   margin-bottom: var(--spaceXL);
 }
@@ -73,6 +68,10 @@
   display: flex;
   gap: var(--spaceS);
   justify-content: flex-end;
+
+  & .icon {
+    color: var(--colorTextBody);
+  }
 }
 
 .intro__models {

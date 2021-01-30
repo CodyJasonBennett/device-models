@@ -12,6 +12,7 @@ import {
   WebGLRenderer,
   PerspectiveCamera,
   Scene,
+  MathUtils,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -20,6 +21,7 @@ import { getImageFromSrcSet } from 'utils/image';
 import { usePrefersReducedMotion } from 'hooks';
 import { cleanScene, cleanRenderer, removeLights } from 'utils/three';
 import { numToMs } from 'utils/style';
+import { ModelAnimationType } from './deviceModels';
 import './index.css';
 
 const MeshType = {
@@ -32,6 +34,7 @@ const Model = forwardRef(
   (
     {
       models,
+      animated,
       show = true,
       showDelay = 200,
       cameraPosition = { x: 0, y: 0, z: 8 },
@@ -135,12 +138,24 @@ const Model = forwardRef(
           }
         });
 
+        gltf.scene.name = `model-${index}`;
         gltf.scene.position.set(position.x, position.y, position.z);
         gltf.scene.rotation.set(rotation.x, rotation.y, rotation.z);
 
         modelGroup.current.add(gltf.scene);
 
-        return { model, gltf, loadFullResTexture };
+        const animation = getModelAnimation({
+          animated,
+          model,
+          gltf,
+          position,
+          reduceMotion,
+          renderFrame,
+          index,
+          showDelay,
+        });
+
+        return { ...animation, loadFullResTexture };
       });
 
       setModelData(deviceConfigPromises);
@@ -162,6 +177,8 @@ const Model = forwardRef(
     }, []);
 
     useEffect(() => {
+      const introSprings = [];
+
       if (!modelData) return;
 
       scene.current.add(modelGroup.current);
@@ -170,6 +187,11 @@ const Model = forwardRef(
         const loadedModels = await Promise.all(modelData);
 
         const handleModelLoad = loadedModels.map(async model => {
+          if (model.animation && animated) {
+            const modelAnimation = model.animation.start(model.modelValue);
+            introSprings.push(modelAnimation);
+          }
+
           if (reduceMotion) {
             renderFrame();
           }
@@ -189,8 +211,14 @@ const Model = forwardRef(
         setLoaded(true);
       };
 
-      loadScene();
-    }, [modelData, reduceMotion, renderFrame]);
+      if (show) loadScene();
+
+      return () => {
+        for (const spring of introSprings) {
+          spring.stop();
+        }
+      };
+    }, [modelData, animated, reduceMotion, renderFrame, show]);
 
     useMemo(() => {
       if (!loaded) return;
@@ -198,7 +226,7 @@ const Model = forwardRef(
       const springs = [];
 
       models.forEach(({ rotation }, index) => {
-        const model = modelGroup.current.children[index];
+        const model = modelGroup.current.getObjectByName(`model-${index}`);
 
         const startRotation = new Vector3(...model.rotation.toArray());
         const endRotation = new Vector3(rotation.x, rotation.y, rotation.z);
@@ -297,7 +325,7 @@ const Model = forwardRef(
       if (!loaded) return;
 
       models.forEach(({ texture }, index) => {
-        const model = modelGroup.current.children[index];
+        const model = modelGroup.current.getObjectByName(`model-${index}`);
 
         model.traverse(async node => {
           if (node.name === MeshType.Screen) {
@@ -366,5 +394,87 @@ const Model = forwardRef(
     );
   }
 );
+
+// Get custom model animation
+function getModelAnimation({
+  animated,
+  model,
+  gltf,
+  reduceMotion,
+  renderFrame,
+  index,
+  showDelay,
+}) {
+  if (!animated) return;
+
+  const positionVector = new Vector3(
+    model.position.x,
+    model.position.y,
+    model.position.z
+  );
+
+  if (reduceMotion) {
+    gltf.scene.position.set(...positionVector.toArray());
+    return;
+  }
+
+  // Simple slide up animation
+  if (model.animation === ModelAnimationType.SpringUp) {
+    const startPosition = new Vector3(
+      positionVector.x,
+      positionVector.y - 2,
+      positionVector.z
+    );
+    const endPosition = positionVector;
+
+    gltf.scene.position.set(...startPosition.toArray());
+
+    const modelValue = value(gltf.scene.position, ({ x, y, z }) => {
+      gltf.scene.position.set(x, y, z);
+      renderFrame();
+    });
+
+    const animation = chain(
+      delay(100 * index + showDelay * 0.6),
+      spring({
+        from: startPosition,
+        to: endPosition,
+        stiffness: 60,
+        damping: 16,
+        restSpeed: 0.001,
+      })
+    );
+
+    return { animation, modelValue };
+  }
+
+  // Laptop open animation
+  if (model.animation === ModelAnimationType.LaptopOpen) {
+    const frameNode = gltf.scene.children.find(node => node.name === MeshType.Frame);
+    const startRotation = new Vector3(MathUtils.degToRad(90), 0, 0);
+    const endRotation = new Vector3(0, 0, 0);
+
+    gltf.scene.position.set(...positionVector.toArray());
+    frameNode.rotation.set(...startRotation.toArray());
+
+    const modelValue = value(frameNode.rotation, ({ x, y, z }) => {
+      frameNode.rotation.set(x, y, z);
+      renderFrame();
+    });
+
+    const animation = chain(
+      delay(300 * index + showDelay + 200),
+      spring({
+        from: startRotation,
+        to: endRotation,
+        stiffness: 50,
+        damping: 14,
+        restSpeed: 0.001,
+      })
+    );
+
+    return { animation, modelValue };
+  }
+}
 
 export default Model;
