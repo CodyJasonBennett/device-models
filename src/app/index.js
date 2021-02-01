@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, createContext, Fragment } from 'react';
-import { BrowserRouter, Switch, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Switch, Route, Redirect, useLocation } from 'react-router-dom';
 import { Transition, TransitionGroup } from 'react-transition-group';
 import classNames from 'classnames';
 import { Helmet } from 'react-helmet';
@@ -60,6 +60,7 @@ const AppRoutes = () => {
                 <Suspense fallback={<Fragment />}>
                   <Switch location={location}>
                     <Route exact path="/" component={Home} />
+                    <Redirect to="/" />
                   </Switch>
                 </Suspense>
               </div>

@@ -3,9 +3,11 @@
 }
 
 .intro {
+  --rgbText: var(--rgbGray);
+
   background: var(--rgbBackground);
   grid-template-columns: var(--maxWidthM) 1fr;
-  grid-row-gap: 20px;
+  grid-row-gap: var(--spaceL);
   display: grid;
   align-items: center;
   min-height: 100vh;
@@ -29,7 +31,7 @@
     & {
       display: flex;
       flex-direction: column-reverse;
-      grid-row-gap: var(--spaceOuter);
+      justify-content: space-between;
       padding: var(--spaceOuter);
     }
   }
@@ -42,51 +44,188 @@
 }
 
 .intro__text {
+  --delay: calc(var(--durationM) + var(--durationS));
+
   position: relative;
   width: 100%;
 }
 
 .intro__logo {
   margin-bottom: var(--spaceL);
+  transition-property: opacity;
+  transition-timing-function: var(--bezierFastoutSlowin);
+  transition-duration: var(--durationXL);
+  transition-delay: var(--delay);
+  opacity: 0;
+
+  @media (--mediaUseMotion) {
+    & {
+      transition-property: transform, opacity;
+      transform: translate3d(0, var(--space3XL), 0);
+    }
+  }
+}
+
+.intro__logo--entering,
+.intro__logo--entered {
+  transform: none;
+  opacity: 1;
 }
 
 .intro__title {
   margin-bottom: var(--spaceXL);
+  transition-property: opacity;
+  transition-timing-function: var(--bezierFastoutSlowin);
+  transition-duration: var(--durationXL);
+  transition-delay: var(--delay);
+  opacity: 0;
+
+  @media (--mediaUseMotion) {
+    & {
+      transition-property: transform, opacity;
+      transform: translate3d(0, var(--space4XL), 0);
+    }
+  }
+}
+
+.intro__title--entering,
+.intro__title--entered {
+  transform: none;
+  opacity: 1;
 }
 
 .intro__description {
   letter-spacing: 1.1px;
   margin-bottom: var(--spaceXL);
+  transition-property: opacity;
+  transition-timing-function: var(--bezierFastoutSlowin);
+  transition-duration: var(--durationXL);
+  transition-delay: var(--delay);
+  opacity: 0;
+
+  @media (--mediaUseMotion) {
+    & {
+      transition-property: transform, opacity;
+      transform: translate3d(0, var(--space5XL), 0);
+    }
+  }
+}
+
+.intro__description--entering,
+.intro__description--entered {
+  transform: none;
+  opacity: 1;
 }
 
 .intro__buttons {
   display: grid;
   flex-direction: row;
   grid-template-columns: auto 1fr;
+  transition-property: opacity;
+  transition-timing-function: var(--bezierFastoutSlowin);
+  transition-duration: var(--durationXL);
+  transition-delay: var(--delay);
+  opacity: 0;
+
+  @media (--mediaUseMotion) {
+    & {
+      transition-property: transform, opacity;
+      transform: translate3d(0, calc(var(--space5XL) + var(--spaceS)), 0);
+    }
+  }
+}
+
+.intro__buttons--entering,
+.intro__buttons--entered {
+  transform: none;
+  opacity: 1;
 }
 
 .intro__socials {
   display: flex;
   gap: var(--spaceS);
   justify-content: flex-end;
+}
 
-  & .icon {
-    color: var(--colorTextBody);
+.intro__social {
+  transition-property: opacity;
+  transition-timing-function: var(--bezierFastoutSlowin);
+  transition-duration: var(--durationXL);
+  transition-delay: calc(
+    var(--delay) + var(--durationS) + (var(--index) * var(--durationXS))
+  );
+  opacity: 0;
+
+  @media (--mediaUseMotion) {
+    & {
+      transition-property: transform, opacity;
+      transform: translate3d(0, var(--spaceM), 0);
+    }
+  }
+}
+
+.intro__social--entering,
+.intro__social--entered {
+  transform: none;
+  opacity: 1;
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
 .intro__models {
+  --backgroundSize: calc(80vh);
+
   width: 100%;
   height: 100%;
 
+  &::before {
+    content: '';
+    width: var(--backgroundSize);
+    height: var(--backgroundSize);
+    background: #ffa538;
+    border-radius: 50%;
+  }
+
+  @media (--mediaUseMotion) {
+    &::before {
+      transform: scale(0);
+      animation-name: grow;
+      animation-duration: var(--durationXL);
+      animation-timing-function: var(--bezierFastoutSlowin);
+      animation-delay: var(--delay);
+      animation-fill-mode: forwards;
+    }
+  }
+
+  @media (--mediaLaptop) {
+    & {
+      --backgroundSize: calc(3 / 5 * 80vw);
+    }
+  }
+
   @media (--mediaTablet) {
     & {
+      --backgroundSize: calc(3 / 5 * 100vw);
+
       height: calc(3 / 4 * 100vw);
       left: auto;
       max-height: 100vh;
       position: relative;
       top: auto;
       width: 100%;
+    }
+  }
+
+  @media (--mediaMobile) {
+    & {
+      --backgroundSize: calc(7 / 12 * 100vw);
     }
   }
 }
