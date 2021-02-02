@@ -3,5 +3,44 @@
   "github": {
     "silent": true
   },
+  "headers": [
+    {
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer 'self'; ambient-light-sensor 'self'; autoplay 'self'; camera 'self'; document-domain 'self'; encrypted-media 'self'; fullscreen 'self'; geolocation 'self'; gyroscope 'self'; magnetometer 'self'; microphone 'self'; midi 'self'; payment 'self'; picture-in-picture 'self'; speaker 'self'; sync-xhr 'self'; usb 'self'; vr / xr 'self';"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31557600; includesubdomains; preload"
+        },
+        {
+          "key": "Vary",
+          "value": "Accept-Encoding"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "deny"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ],
+      "source": "/(.*)"
+    }
+  ],
   "rewrites": [{ "source": "/index.html", "destination": "/" }]
 }
