@@ -199,7 +199,7 @@
       animation-name: grow;
       animation-duration: var(--durationXL);
       animation-timing-function: var(--bezierFastoutSlowin);
-      animation-delay: var(--delay);
+      animation-delay: calc(var(--delay) + var(--durationXS));
       animation-fill-mode: forwards;
     }
   }
