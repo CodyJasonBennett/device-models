@@ -15,7 +15,6 @@ import prerender from 'utils/prerender';
 import socials from './socials';
 import deviceModels from 'components/Model/deviceModels';
 import iphone11 from 'assets/iphone-11.glb';
-import macbookPro from 'assets/macbook-pro.glb';
 import './index.css';
 
 const Model = lazy(() => import('components/Model'));
@@ -35,7 +34,6 @@ const Home = () => {
           content="Create mockups with 3D device models. Customize the color, camera angle, and device model for your mockups. Includes models for the iPhone and Macbook Pro, with more models on the way for other devices."
         />
         <link rel="prefetch" href={iphone11} as="fetch" crossorigin="" />
-        <link rel="prefetch" href={macbookPro} as="fetch" crossorigin="" />
       </Helmet>
       <section className="intro">
         <Transition appear={!prerender} in={!prerender} timeout={0} onEnter={reflow}>
