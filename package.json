@@ -1,6 +1,6 @@
 {
   "name": "device-models",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "homepage": "https://devicemodels.com",
   "description": "A Figma plugin to create mockups with 3D device models.",
   "repository": "https://github.com/CodyJasonBennett/device-models.git",
@@ -24,7 +24,7 @@
     "enzyme-adapter-react-16": "^1.15.5",
     "file-loader": "^6.2.0",
     "html-webpack-inline-source-plugin": "1.0.0-beta.2",
-    "html-webpack-plugin": "^5.0.0",
+    "html-webpack-plugin": "^4.0.0-alpha",
     "prettier": "^2.2.1",
     "react-scripts-postcss": "4.0.0-mod1",
     "react-snap": "1.23.0",

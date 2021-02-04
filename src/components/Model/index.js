@@ -161,6 +161,7 @@ const Model = forwardRef(
       setModelData(deviceConfigPromises);
 
       controls.current = new OrbitControls(camera.current, renderer.current.domElement);
+      controls.current.keys = {};
       Object.assign(controls.current, controlOverrides);
 
       return () => {
@@ -422,7 +423,7 @@ function getModelAnimation({
   if (model.animation === ModelAnimationType.SpringUp) {
     const startPosition = new Vector3(
       positionVector.x,
-      positionVector.y - 2,
+      positionVector.y - 6,
       positionVector.z
     );
     const endPosition = positionVector;
