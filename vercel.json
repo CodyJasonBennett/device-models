@@ -31,10 +31,6 @@
           "value": "nosniff"
         },
         {
-          "key": "X-Frame-Options",
-          "value": "deny"
-        },
-        {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
         }
