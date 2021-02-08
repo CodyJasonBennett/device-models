@@ -152,7 +152,7 @@ const Plugin = () => {
         >
           {children}
         </button>
-        <Tooltip visible={isHovered} parent={presetRef}>
+        <Tooltip bottom visible={isHovered} parent={presetRef}>
           {label}
         </Tooltip>
       </Fragment>

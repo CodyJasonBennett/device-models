@@ -5,7 +5,6 @@
 .intro {
   --rgbText: var(--rgbGray);
 
-  background: var(--rgbBackground);
   grid-template-columns: var(--maxWidthM) 1fr;
   grid-row-gap: var(--spaceL);
   display: grid;
