@@ -146,7 +146,9 @@ const Plugin = () => {
           className="sidebar__device-button"
           aria-pressed={preset === index ? 'true' : 'false'}
           onMouseOver={() => setIsHovered(true)}
+          onFocus={() => setIsHovered(true)}
           onMouseOut={() => setIsHovered(false)}
+          onBlur={() => setIsHovered(false)}
           onClick={onClick}
           {...rest}
         >

@@ -11,7 +11,9 @@ const TooltipWrapper = props => {
       <p
         ref={parent}
         onMouseOver={() => setVisible(true)}
+        onFocus={() => setVisible(true)}
         onMouseOut={() => setVisible(false)}
+        onBlur={() => setVisible(false)}
         style={{ cursor: 'help' }}
       >
         Hover
