@@ -7,11 +7,11 @@ figma.showUI(__html__, {
 
 async function sendSelection() {
   const selection = figma.currentPage.selection[0];
-  if (!selection) return figma.ui.postMessage(null);
+  if (!selection) return figma.ui.postMessage({ type: 'selection', value: null });
 
   const blob = await selection.exportAsync();
 
-  return figma.ui.postMessage(blob);
+  return figma.ui.postMessage({ type: 'selection', value: blob });
 }
 
 sendSelection();
@@ -19,45 +19,57 @@ sendSelection();
 figma.on('selectionchange', sendSelection);
 
 figma.ui.onmessage = async ({ type, name, width, height, blob }) => {
-  if (type === 'create-empty-frame') {
-    const selection = [];
+  const selection = [];
 
-    const frame = figma.createFrame();
-    frame.name = `${name} Frame`;
-    frame.resize(width, height);
-    figma.currentPage.appendChild(frame);
+  switch (type) {
+    case 'create-empty-frame': {
+      const frame = figma.createFrame();
+      frame.name = `${name} Frame`;
+      frame.resize(width, height);
+      figma.currentPage.appendChild(frame);
 
-    await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
-    await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+      await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
+      await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 
-    const text = figma.createText();
-    text.characters = `${width}x${height}`;
-    text.fontSize = 48;
-    text.fontName = { family: 'Inter', style: 'Regular' };
-    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
-    text.x = width / 2 - text.width / 2;
-    text.y = height / 2 - text.height / 2;
-    frame.appendChild(text);
+      const text = figma.createText();
+      text.characters = `${width}x${height}`;
+      text.fontSize = 48;
+      text.fontName = { family: 'Inter', style: 'Regular' };
+      text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+      text.x = width / 2 - text.width / 2;
+      text.y = height / 2 - text.height / 2;
+      frame.appendChild(text);
 
-    selection.push(frame);
+      selection.push(frame);
 
-    figma.currentPage.selection = selection;
-    figma.viewport.scrollAndZoomIntoView(selection);
-  } else if (type === 'save-canvas-image') {
-    const selection = [];
+      figma.currentPage.selection = selection;
+      figma.viewport.scrollAndZoomIntoView(selection);
 
-    const rectangle = figma.createRectangle();
-    rectangle.name = `${name} Render`;
-    rectangle.resize(width, height);
+      figma.off('selectionchange', sendSelection);
+      return figma.closePlugin();
+    }
+    case 'save-canvas-image': {
+      const rectangle = figma.createRectangle();
+      rectangle.name = `${name} Render`;
+      rectangle.resize(width, height);
 
-    const image = figma.createImage(blob);
-    rectangle.fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }];
+      const image = figma.createImage(blob);
+      rectangle.fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }];
 
-    figma.currentPage.appendChild(rectangle);
+      figma.currentPage.appendChild(rectangle);
 
-    figma.currentPage.selection = selection;
-    figma.viewport.scrollAndZoomIntoView(selection);
+      figma.currentPage.selection = selection;
+      figma.viewport.scrollAndZoomIntoView(selection);
+
+      figma.off('selectionchange', sendSelection);
+      return figma.closePlugin();
+    }
+    case 'export': {
+      const pixelRatio = 4;
+
+      return figma.ui.postMessage({ type: 'save-canvas-image', value: pixelRatio });
+    }
+    default:
+      throw new Error();
   }
-
-  figma.closePlugin();
 };

@@ -177,6 +177,17 @@ const Model = forwardRef(
       renderer.current.render(scene.current, camera.current);
     }, []);
 
+    // Create export method
+    useEffect(() => {
+      canvas.current.export = (pixelRatio = 2) => {
+        renderer.current.setPixelRatio(pixelRatio);
+        renderFrame();
+
+        return canvas.current.toDataURL('image/png', 1);
+      };
+    }, [canvas, renderFrame]);
+
+    // Init models
     useEffect(() => {
       const introSprings = [];
 
@@ -221,6 +232,7 @@ const Model = forwardRef(
       };
     }, [modelData, animated, reduceMotion, renderFrame, show]);
 
+    // Syn device rotation inputs
     useMemo(() => {
       if (!loaded) return;
 
@@ -256,6 +268,7 @@ const Model = forwardRef(
       };
     }, [loaded, models, showDelay]);
 
+    // Sync camera rotation inputs
     useMemo(() => {
       if (!loaded) return;
 
@@ -307,6 +320,7 @@ const Model = forwardRef(
       };
     }, [loaded, cameraRotation, showDelay]);
 
+    // Sync device color inputs
     useEffect(() => {
       if (!loaded) return;
 
@@ -322,6 +336,7 @@ const Model = forwardRef(
       });
     }, [loaded, models]);
 
+    // Sync texture selection
     useEffect(() => {
       if (!loaded) return;
 
@@ -365,6 +380,7 @@ const Model = forwardRef(
       };
     }, []);
 
+    // Auto-update if dampened
     useEffect(() => {
       const animate = () => {
         if (controls.current.enableDamping) controls.current.update();
@@ -415,8 +431,7 @@ function getModelAnimation({
   );
 
   if (reduceMotion) {
-    gltf.scene.position.set(...positionVector.toArray());
-    return;
+    return void gltf.scene.position.set(...positionVector.toArray());
   }
 
   // Simple slide up animation

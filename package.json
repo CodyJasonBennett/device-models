@@ -1,6 +1,6 @@
 {
   "name": "device-models",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "homepage": "https://devicemodels.com",
   "description": "A Figma plugin to create mockups with 3D device models.",
   "repository": "https://github.com/CodyJasonBennett/device-models.git",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@babel/core": "^7.13.1",
+    "@babel/core": "^7.13.8",
     "@babel/preset-react": "^7.12.13",
     "@storybook/addon-a11y": "^6.1.20",
     "@storybook/addon-actions": "^6.1.20",
@@ -19,7 +19,7 @@
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.7.3",
     "babel-loader": "8.1.0",
-    "css-loader": "^5.0.2",
+    "css-loader": "^5.1.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.5",
     "file-loader": "^6.2.0",

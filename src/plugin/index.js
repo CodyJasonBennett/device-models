@@ -1,4 +1,12 @@
-import { useRef, useState, useMemo, useEffect, Fragment, Suspense } from 'react';
+import {
+  useRef,
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  Fragment,
+  Suspense,
+} from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
 import { MathUtils } from 'three';
@@ -79,54 +87,87 @@ const Plugin = () => {
 
   useEffect(() => {
     window.onmessage = async event => {
-      const selection = event.data.pluginMessage;
-      if (!selection) return setTexture(defaultDevice.texture.src);
+      const { type, value } = event.data.pluginMessage;
 
-      const blob = new Blob([selection], { type: 'image/png' });
+      switch (type) {
+        case 'selection': {
+          if (!value) return setTexture(defaultDevice.texture.src);
 
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = () => setTexture(reader.result);
+          const blob = new Blob([value], { type: 'image/png' });
+
+          return await Promise.resolve(
+            new Promise(resolve => {
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = () => {
+                setTexture(reader.result);
+                resolve(reader.result);
+              };
+            })
+          );
+        }
+        case 'save-canvas-image': {
+          const render = canvas.current.export(value);
+
+          const { width, height } = await getImage(render);
+          const blob = getImageBlob(render);
+
+          return parent.postMessage(
+            {
+              pluginMessage: {
+                type: 'save-canvas-image',
+                name: activeDevice.name,
+                width,
+                height,
+                blob,
+              },
+            },
+            '*'
+          );
+        }
+        default:
+          throw new Error();
+      }
     };
+  }, [activeDevice.name]);
+
+  const createEmptyFrame = useCallback(
+    event => {
+      event.preventDefault();
+
+      const { name, width, height } = activeDevice;
+
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: 'create-empty-frame',
+            name,
+            width,
+            height,
+          },
+        },
+        '*'
+      );
+    },
+    [activeDevice]
+  );
+
+  const saveCanvasImage = useCallback(async event => {
+    event.preventDefault();
+
+    const { width, height } = canvas.current;
+
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: 'export',
+          width,
+          height,
+        },
+      },
+      '*'
+    );
   }, []);
-
-  const createEmptyFrame = event => {
-    event.preventDefault();
-
-    const { name, width, height } = activeDevice;
-
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: 'create-empty-frame',
-          name,
-          width,
-          height,
-        },
-      },
-      '*'
-    );
-  };
-
-  const saveCanvasImage = async event => {
-    event.preventDefault();
-
-    const { width, height } = await getImage(canvas.current.toDataURL());
-    const blob = getImageBlob(canvas.current.toDataURL());
-
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: 'save-canvas-image',
-          name: activeDevice.name,
-          width,
-          height,
-          blob,
-        },
-      },
-      '*'
-    );
-  };
 
   const Preset = ({ index, label, children, ...rest }) => {
     const presetRef = useRef();
