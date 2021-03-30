@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, createContext, Fragment } from 'react';
-import { BrowserRouter, Switch, Route, Redirect, useLocation } from 'react-router-dom';
+import { BrowserRouter, Switch, Route, useLocation } from 'react-router-dom';
 import { Transition, TransitionGroup } from 'react-transition-group';
 import classNames from 'classnames';
 import { Helmet } from 'react-helmet';
@@ -13,6 +13,7 @@ import './reset.css';
 import './index.css';
 
 const Home = lazy(() => import('pages/Home'));
+const Page404 = lazy(() => import('pages/404'));
 
 export const TransitionContext = createContext();
 
@@ -60,7 +61,7 @@ const AppRoutes = () => {
                 <Suspense fallback={<Fragment />}>
                   <Switch location={location}>
                     <Route exact path="/" component={Home} />
-                    <Redirect to="/" />
+                    <Route component={Page404} />
                   </Switch>
                 </Suspense>
               </div>

@@ -1,8 +1,8 @@
-const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
 
-module.exports = (env, argv) => ({
+module.exports = (_, argv) => ({
   devtool: argv.mode === 'production' ? false : 'inline-source-map',
 
   module: {
@@ -24,7 +24,7 @@ module.exports = (env, argv) => ({
         ],
       },
       {
-        test: /\.(png|jpe?g|gif|woff2|glb)$/,
+        test: /\.(png|jpe?g|woff2|glb)$/,
         use: {
           loader: 'url-loader',
         },
@@ -36,7 +36,7 @@ module.exports = (env, argv) => ({
     figma: './src/plugin/figma.js',
   },
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.js'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   output: {
