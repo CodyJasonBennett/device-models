@@ -4,7 +4,7 @@ A Figma plugin to create mockups with 3D device models.
 
 [![Site preview](/public/social-image.png)](https://devicemodels.com)
 
-Create mockups with 3D device models. Customize the color, camera angle, and device model for your mockups. Includes models for the iPhone and Macbook Pro, with more models on the way for other devices.
+Create mockups with 3D device models. Customize the color, camera angle, and device model for your mockups. Includes models for the iPhone, Macbook Pro, iMac, and iPad with more models on the way for other devices.
 
 How to use:
 

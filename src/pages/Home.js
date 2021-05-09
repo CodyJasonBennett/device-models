@@ -10,7 +10,7 @@ const Home = () => (
       <title>Device Models</title>
       <meta
         name="description"
-        content="Create mockups with 3D device models. Customize the color, camera angle, and device model for your mockups. Includes models for the iPhone and Macbook Pro, with more models on the way for other devices."
+        content="Create 3D device mockups from your layers in Figma. Choose a model, set a camera angle, and change device color."
       />
       <link rel="prefetch" href={iphone11} as="fetch" crossorigin="" />
     </Helmet>
