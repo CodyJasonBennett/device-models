@@ -15,6 +15,7 @@ import {
   MathUtils,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { delay, chain, spring, value } from 'popmotion';
 import { usePrefersReducedMotion } from 'hooks';
@@ -97,7 +98,13 @@ const Model = forwardRef(
       scene.current = new Scene();
 
       textureLoader.current = new TextureLoader();
+
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+
       modelLoader.current = new GLTFLoader();
+      modelLoader.current.setDRACOLoader(dracoLoader);
+
       modelGroup.current = new Object3D();
 
       // Lighting
