@@ -30,7 +30,7 @@ const [defaultDevice] = devices;
 
 const Plugin = () => {
   const canvas = useRef();
-  const [texture, setTexture] = useState(defaultDevice.texture.src);
+  const [texture, setTexture] = useState(defaultDevice.texture);
   const [device, setDevice] = useState(defaultDevice.name);
   const [preset, setPreset] = useState(0);
   const { deviceRotation, cameraRotation } = presets[preset];
@@ -46,10 +46,10 @@ const Plugin = () => {
   ]);
 
   useMemo(() => {
-    if (devices.find(device => device.texture.src === texture)) {
-      setTexture(activeDevice.texture.src);
+    if (texture && devices.find(device => device.texture === texture)) {
+      setTexture(activeDevice.texture);
     }
-  }, [texture, activeDevice.texture.src]);
+  }, [texture, activeDevice.texture]);
 
   const modelSettings = useMemo(
     () => ({
@@ -67,9 +67,7 @@ const Plugin = () => {
             z: MathUtils.degToRad(deviceZ.value),
           },
           color: color.value,
-          texture: {
-            src: texture,
-          },
+          texture,
         },
       ],
     }),
@@ -91,7 +89,7 @@ const Plugin = () => {
 
       switch (type) {
         case 'selection': {
-          if (!value) return setTexture(defaultDevice.texture.src);
+          if (!value) return setTexture(defaultDevice.texture);
 
           const blob = new Blob([value], { type: 'image/png' });
 

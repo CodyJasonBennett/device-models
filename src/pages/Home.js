@@ -26,7 +26,7 @@ const Home = () => (
           rotation: { x: -0.4, y: 0.4, z: 0.2 },
         },
         {
-          ...deviceModels.iphone11,
+          ...deviceModels.iphone12,
           position: { x: 0.6, y: 0.4, z: 1.2 },
           rotation: { x: 0, y: -0.6, z: -0.2 },
         },

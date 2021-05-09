@@ -17,7 +17,6 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { delay, chain, spring, value } from 'popmotion';
-import { getImageFromSrcSet } from 'utils/image';
 import { usePrefersReducedMotion } from 'hooks';
 import { cleanScene, cleanRenderer, removeLights } from 'utils/three';
 import { numToMs } from 'utils/style';
@@ -117,9 +116,6 @@ const Model = forwardRef(
         let loadFullResTexture;
 
         const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
-        const placeholder =
-          texture?.placeholder &&
-          (await textureLoader.current.loadAsync(texture.placeholder));
 
         gltf.scene.traverse(node => {
           if (node.material) {
@@ -128,12 +124,9 @@ const Model = forwardRef(
           }
 
           if (node.name === MeshType.Screen) {
-            if (texture?.placeholder) applyScreenTexture(placeholder, node);
-
             loadFullResTexture = async () => {
-              const image = await getImageFromSrcSet(texture);
-              const fullSize = await textureLoader.current.loadAsync(image);
-              await applyScreenTexture(fullSize, node);
+              const image = await textureLoader.current.loadAsync(texture);
+              await applyScreenTexture(image, node);
             };
           }
         });
@@ -345,16 +338,8 @@ const Model = forwardRef(
 
         model.traverse(async node => {
           if (node.name === MeshType.Screen) {
-            if (texture.placeholder) {
-              const placeholder = await textureLoader.current.loadAsync(
-                texture.placeholder
-              );
-              applyScreenTexture(placeholder, node);
-            }
-
-            const image = await getImageFromSrcSet(texture);
-            const fullSize = await textureLoader.current.loadAsync(image);
-            await applyScreenTexture(fullSize, node);
+            const image = await textureLoader.current.loadAsync(texture);
+            await applyScreenTexture(image, node);
           }
         });
       });
