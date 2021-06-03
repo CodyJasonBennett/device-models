@@ -6,7 +6,7 @@ figma.showUI(__html__, {
 });
 
 async function sendSelection() {
-  const selection = figma.currentPage.selection[0];
+  const [selection] = figma.currentPage.selection;
   if (!selection) return figma.ui.postMessage({ type: 'selection', value: null });
 
   const blob = await selection.exportAsync();
