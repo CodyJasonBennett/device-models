@@ -41,9 +41,10 @@ const Plugin = () => {
   const cameraY = useFormInput(cameraRotation.y);
   const color = useFormInput('#FFFFFF');
 
-  const activeDevice = useMemo(() => devices.find(({ name }) => name === device), [
-    device,
-  ]);
+  const activeDevice = useMemo(
+    () => devices.find(({ name }) => name === device),
+    [device]
+  );
 
   useMemo(() => {
     if (texture && devices.find(device => device.texture === texture)) {
@@ -183,7 +184,7 @@ const Plugin = () => {
         <button
           ref={presetRef}
           className="sidebar__device-button"
-          aria-pressed={preset === index ? 'true' : 'false'}
+          aria-pressed={preset === index}
           onMouseOver={() => setIsHovered(true)}
           onFocus={() => setIsHovered(true)}
           onMouseOut={() => setIsHovered(false)}
@@ -236,7 +237,7 @@ const Plugin = () => {
               <div className="sidebar__label" id="anglePreset">
                 Angle Preset
               </div>
-              <div className="sidebar__devices" data-scroll="true">
+              <div className="sidebar__devices" data-scroll>
                 {presets.map(({ label }, index) => (
                   <Preset
                     key={index}
@@ -304,23 +305,22 @@ const Plugin = () => {
             </div>
             <div className="sidebar__control">
               <div className="input">
-                <label className="input__label" id="13-label" htmlFor="13-input">
+                <label className="input__label" id="color-label" htmlFor="color-input">
                   Model Color
                 </label>
                 <div className="dropdown">
                   <button
-                    aria-haspopup="true"
+                    aria-haspopup
+                    aria-expanded={false}
                     className="dropdown__button input__color-swatch"
-                    id="dropdown-button-12"
-                    aria-expanded="true"
                     aria-label="Choose color style"
                     style={{ backgroundColor: color.value }}
                   />
                 </div>
                 <input
                   className="input__element"
-                  id="13-input"
-                  aria-labelledby="13-label"
+                  id="color-input"
+                  aria-labelledby="color-label"
                   type="text"
                   {...color}
                 />

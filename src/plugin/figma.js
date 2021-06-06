@@ -28,7 +28,6 @@ figma.ui.onmessage = async ({ type, name, width, height, blob }) => {
       frame.resize(width, height);
       figma.currentPage.appendChild(frame);
 
-      await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
       await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 
       const text = figma.createText();
