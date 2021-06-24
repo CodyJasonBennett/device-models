@@ -74,8 +74,7 @@
   border-right: 6px solid transparent;
   border-bottom: 6px solid var(--tooltip-background);
   transform: translate3d(-50%, -100%, 0);
-  left: 50%;
-  top: 0;
+  inset: 0 0 0 50%;
 }
 
 .tooltip--entering.tooltip--bottom,

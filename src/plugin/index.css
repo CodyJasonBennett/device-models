@@ -45,10 +45,7 @@ button {
 .ui {
   overflow: hidden;
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   outline: none;
   background-color: rgba(var(--rgbSurface));
   border-radius: 0 0 3px 3px;
@@ -56,10 +53,7 @@ button {
 
 .ui__layout {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   display: grid;
   grid-template-columns: 1fr 240px;
   grid-template-rows: 100%;
@@ -99,11 +93,7 @@ button {
 
 .ui__spinner {
   position: absolute;
-  top: 0;
-  right: 240px;
-  bottom: 0;
-  left: 0;
-  opacity: 0;
+  inset: 0 240px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;

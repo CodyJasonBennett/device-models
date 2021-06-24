@@ -41,10 +41,9 @@ const Plugin = () => {
   const cameraY = useFormInput(cameraRotation.y);
   const color = useFormInput('#FFFFFF');
 
-  const activeDevice = useMemo(
-    () => devices.find(({ name }) => name === device),
-    [device]
-  );
+  const activeDevice = useMemo(() => devices.find(({ name }) => name === device), [
+    device,
+  ]);
 
   useMemo(() => {
     if (texture && devices.find(device => device.texture === texture)) {

@@ -8,10 +8,7 @@
 
 .model__canvas {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   outline: none;
   cursor: grab;
   transition: opacity 0.4s ease;

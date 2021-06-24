@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const postcssOptions = require('./postcss.config');
 
 module.exports = () => ({
   devtool: process.env.NODE_ENV === 'development' && 'inline-source-map',
@@ -20,6 +21,10 @@ module.exports = () => ({
           },
           {
             loader: 'css-loader',
+          },
+          {
+            loader: 'postcss-loader',
+            options: { postcssOptions },
           },
         ],
       },
@@ -51,6 +56,7 @@ module.exports = () => ({
       inlineSource: '.(js)$',
       inject: 'body',
       chunks: ['index'],
+      cache: false,
     }),
     new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
   ],
