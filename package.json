@@ -9,7 +9,7 @@
   "private": true,
   "devDependencies": {
     "@babel/core": "^7.14.6",
-    "@babel/preset-react": "^7.13.13",
+    "@babel/preset-react": "^7.14.5",
     "@craco/craco": "^6.1.2",
     "@storybook/addon-a11y": "^6.3.0",
     "@storybook/addon-actions": "^6.3.0",
@@ -23,7 +23,7 @@
     "enzyme-adapter-react-16": "^1.15.5",
     "html-webpack-inline-source-plugin": "1.0.0-beta.2",
     "html-webpack-plugin": "^4.0.0-alpha",
-    "prettier": "^2.3.0",
+    "prettier": "^2.3.2",
     "react-scripts": "4.0.3",
     "react-snap": "1.23.0",
     "source-map-explorer": "^2.5.2",
