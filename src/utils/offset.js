@@ -1,7 +1,7 @@
 /**
  * Gets the coordinates of an element and applies an offset.
  */
-function offset(element) {
+function offset(element, orientation = 'bottom') {
   if (!element) return;
 
   const rect = element.getBoundingClientRect();
@@ -9,7 +9,7 @@ function offset(element) {
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-  const offsetTop = rect.top + scrollTop;
+  const offsetTop = (rect.top + scrollTop) * (orientation === 'bottom' ? 1 : -1);
   const offsetLeft = rect.left + scrollLeft;
 
   const top = element.clientHeight + offsetTop + 8;

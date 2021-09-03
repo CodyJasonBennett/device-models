@@ -14,7 +14,7 @@ const Tooltip = ({ id, visible, top, bottom, parent, children }) => (
         })}
         id={id}
         role="tooltip"
-        style={offset(parent.current)}
+        style={offset(parent.current, top ? 'top' : 'bottom')}
       >
         {children}
       </div>
