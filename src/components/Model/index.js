@@ -1,23 +1,24 @@
-import { forwardRef, useEffect, useCallback, useRef, useState, useMemo } from 'react';
+import { useEffect, useCallback, useRef, useState, useMemo, forwardRef } from 'react';
 import classNames from 'classnames';
 import {
   sRGBEncoding,
   LinearFilter,
   Color,
   TextureLoader,
+  Vector2,
   Vector3,
-  Object3D,
   AmbientLight,
   DirectionalLight,
   WebGLRenderer,
   PerspectiveCamera,
   Scene,
   MathUtils,
+  Object3D,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { delay, chain, spring, value } from 'popmotion';
+import { Tween, Easing, update } from '@tweenjs/tween.js';
 import { usePrefersReducedMotion } from 'hooks';
 import { cleanScene, cleanRenderer, removeLights } from 'utils/three';
 import { numToMs } from 'utils/style';
@@ -33,32 +34,44 @@ const MeshType = {
 const Model = forwardRef(
   (
     {
-      models,
-      animated,
-      show = true,
+      animated = false,
       showDelay = 200,
-      cameraPosition = { x: 0, y: 0, z: 8 },
-      cameraRotation = { x: 0, y: 0, z: 0 },
-      controls: controlOverrides,
       style,
       className,
-      alt = 'Model Preview',
+      controls: controlOverrides,
+      models,
+      cameraPosition = { x: 0, y: 0, z: 8 },
+      cameraRotation = { x: 0, y: 0, z: 0 },
       ...rest
     },
     canvas
   ) => {
-    const [modelData, setModelData] = useState();
     const [loaded, setLoaded] = useState(false);
     const container = useRef();
     const camera = useRef();
+    const scene = useRef();
+    const controls = useRef();
+    const renderer = useRef();
+    const lights = useRef();
     const textureLoader = useRef();
     const modelLoader = useRef();
     const modelGroup = useRef();
-    const scene = useRef();
-    const renderer = useRef();
-    const lights = useRef();
-    const controls = useRef();
     const reduceMotion = usePrefersReducedMotion();
+
+    // Handle render passes for a single frame
+    const renderFrame = useCallback(() => {
+      renderer.current.render(scene.current, camera.current);
+    }, []);
+
+    // Create export method
+    useEffect(() => {
+      canvas.current.export = pixelRatio => {
+        renderer.current.setPixelRatio(pixelRatio);
+        renderFrame();
+
+        return canvas.current.toDataURL('image/png', 1);
+      };
+    }, [canvas, renderFrame]);
 
     const applyScreenTexture = async (texture, node) => {
       texture.encoding = sRGBEncoding;
@@ -85,27 +98,28 @@ const Model = forwardRef(
         alpha: true,
         antialias: true,
         powerPreference: 'high-performance',
-        preserveDrawingBuffer: true,
       });
 
-      renderer.current.setPixelRatio(2);
+      renderer.current.setPixelRatio(Math.max(window.devicePixelRatio, 2));
       renderer.current.setSize(clientWidth, clientHeight);
       renderer.current.outputEncoding = sRGBEncoding;
       renderer.current.physicallyCorrectLights = true;
 
       camera.current = new PerspectiveCamera(36, clientWidth / clientHeight, 0.1, 100);
       camera.current.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+      controls.current = new OrbitControls(camera.current, renderer.current.domElement);
+      controls.current.enableKeys = false;
+      controls.current.enablePan = true;
+      controls.current.enableZoom = true;
+      controls.current.maxDistance = 16;
+      controls.current.minDistance = 4;
+      controls.current.enableRotate = true;
+      controls.current.enableDamping = true;
+      controls.current.dampingFactor = 0.1;
+      Object.assign(controls.current, controlOverrides);
+
       scene.current = new Scene();
-
-      textureLoader.current = new TextureLoader();
-
-      const dracoLoader = new DRACOLoader();
-      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-
-      modelLoader.current = new GLTFLoader();
-      modelLoader.current.setDRACOLoader(dracoLoader);
-
-      modelGroup.current = new Object3D();
 
       // Lighting
       const ambientLight = new AmbientLight(0xffffff, 1.2);
@@ -117,52 +131,79 @@ const Model = forwardRef(
       lights.current = [ambientLight, keyLight, fillLight];
       lights.current.forEach(light => scene.current.add(light));
 
-      // Build an array of promises to fetch and apply models & animations
-      const deviceConfigPromises = models.map(async (model, index) => {
-        const { url, color, texture, position, rotation } = model;
-        let loadFullResTexture;
+      textureLoader.current = new TextureLoader();
 
-        const gltf = await Promise.resolve(await modelLoader.current.loadAsync(url));
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 
-        gltf.scene.traverse(node => {
-          if (node.material) {
-            node.material.color = new Color(color);
-            node.material.color.convertSRGBToLinear();
+      modelLoader.current = new GLTFLoader();
+      modelLoader.current.setDRACOLoader(dracoLoader);
+
+      modelGroup.current = new Object3D();
+      scene.current.add(modelGroup.current);
+
+      const loadScene = async () => {
+        const handleModelLoad = models.map(async (model, index) => {
+          const { url, color, texture, position, rotation } = model;
+
+          let loadFullResTexture;
+
+          const gltf = await modelLoader.current.loadAsync(url);
+
+          gltf.scene.traverse(node => {
+            if (node.material) {
+              node.material.color = new Color(color);
+              node.material.color.convertSRGBToLinear();
+            }
+
+            if (node.name === MeshType.Screen) {
+              loadFullResTexture = async () => {
+                const image = await textureLoader.current.loadAsync(texture);
+                await applyScreenTexture(image, node);
+              };
+            }
+          });
+
+          gltf.scene.name = `model-${index}`;
+
+          if (animated) {
+            gltf.scene.position.set(position.x, position.y, position.z);
+            gltf.scene.rotation.set(rotation.x, rotation.y, rotation.z);
+
+            const animation = getModelAnimation({
+              animated,
+              model,
+              gltf,
+              reduceMotion,
+              renderFrame,
+              index,
+              showDelay,
+            });
+
+            animation.start();
           }
 
-          if (node.name === MeshType.Screen) {
-            loadFullResTexture = async () => {
-              const image = await textureLoader.current.loadAsync(texture);
-              await applyScreenTexture(image, node);
-            };
+          modelGroup.current.add(gltf.scene);
+
+          if (reduceMotion) {
+            renderFrame();
+          }
+
+          // Load full res screen texture
+          await loadFullResTexture();
+
+          // Render the loaded texture
+          if (reduceMotion) {
+            renderFrame();
           }
         });
 
-        gltf.scene.name = `model-${index}`;
-        gltf.scene.position.set(position.x, position.y, position.z);
-        gltf.scene.rotation.set(rotation.x, rotation.y, rotation.z);
+        await Promise.all(handleModelLoad);
 
-        modelGroup.current.add(gltf.scene);
+        setLoaded(true);
+      };
 
-        const animation = getModelAnimation({
-          animated,
-          model,
-          gltf,
-          position,
-          reduceMotion,
-          renderFrame,
-          index,
-          showDelay,
-        });
-
-        return { ...animation, loadFullResTexture };
-      });
-
-      setModelData(deviceConfigPromises);
-
-      controls.current = new OrbitControls(camera.current, renderer.current.domElement);
-      controls.current.keys = {};
-      Object.assign(controls.current, controlOverrides);
+      loadScene();
 
       return () => {
         removeLights(lights.current);
@@ -172,165 +213,135 @@ const Model = forwardRef(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Handle render passes for a single frame
-    const renderFrame = useCallback(() => {
-      renderer.current.render(scene.current, camera.current);
-    }, []);
+    // Sync device position inputs
+    useMemo(() => {
+      if (!loaded || animated) return;
 
-    // Create export method
-    useEffect(() => {
-      canvas.current.export = (pixelRatio = 2) => {
-        renderer.current.setPixelRatio(pixelRatio);
-        renderFrame();
+      const springs = [];
 
-        return canvas.current.toDataURL('image/png', 1);
-      };
-    }, [canvas, renderFrame]);
+      models.forEach(({ position }, index) => {
+        const gltf = scene.current.getObjectByName(`model-${index}`);
 
-    // Init models
-    useEffect(() => {
-      const introSprings = [];
+        const startPosition = gltf.position.clone();
+        const endPosition = new Vector3(position.x, position.y, position.z);
 
-      if (!modelData) return;
-
-      scene.current.add(modelGroup.current);
-
-      const loadScene = async () => {
-        const loadedModels = await Promise.all(modelData);
-
-        const handleModelLoad = loadedModels.map(async model => {
-          if (model.animation && animated) {
-            const modelAnimation = model.animation.start(model.modelValue);
-            introSprings.push(modelAnimation);
-          }
-
-          if (reduceMotion) {
-            renderFrame();
-          }
-
-          // Load full res screen texture
-          await model.loadFullResTexture();
-
-          // Render the loaded texture
-          if (reduceMotion) {
-            renderFrame();
-          }
-
-          return model;
-        });
-
-        await Promise.all(handleModelLoad);
-        setLoaded(true);
-      };
-
-      if (show) loadScene();
+        if (reduceMotion) {
+          gltf.rotation.copy(endPosition);
+        } else {
+          springs.push(
+            new Tween(startPosition)
+              .to(endPosition)
+              .onUpdate(({ x, y, z }) => gltf.position.set(x, y, z))
+              .easing(Easing.Quartic.Out)
+              .start()
+          );
+        }
+      });
 
       return () => {
-        for (const spring of introSprings) {
-          spring.stop();
-        }
+        springs.forEach(spring => spring?.stop());
       };
-    }, [modelData, animated, reduceMotion, renderFrame, show]);
+    }, [loaded, animated, models, reduceMotion]);
 
-    // Syn device rotation inputs
+    // Sync device rotation inputs
     useMemo(() => {
-      if (!loaded) return;
+      if (!loaded || animated) return;
 
       const springs = [];
 
       models.forEach(({ rotation }, index) => {
-        const model = modelGroup.current.getObjectByName(`model-${index}`);
+        const gltf = scene.current.getObjectByName(`model-${index}`);
 
-        const startRotation = new Vector3(...model.rotation.toArray());
-        const endRotation = new Vector3(rotation.x, rotation.y, rotation.z);
-
-        const deviceValue = value(model.rotation, ({ x, y, z }) => {
-          model.rotation.set(x, y, z);
-        });
-
-        const transformation = chain(
-          delay(300 + showDelay * 0.6),
-          spring({
-            from: startRotation,
-            to: endRotation,
-            stiffness: 60,
-            damping: 16,
-            restSpeed: 0.001,
-          })
+        const startRotation = new Vector3(...gltf.rotation.toArray());
+        const endRotation = new Vector3(
+          MathUtils.degToRad(rotation.x),
+          MathUtils.degToRad(rotation.y),
+          MathUtils.degToRad(rotation.z)
         );
 
-        const animation = transformation.start(deviceValue);
-        springs.push(animation);
+        if (reduceMotion) {
+          gltf.rotation.set(...endRotation.toArray());
+        } else {
+          springs.push(
+            new Tween(startRotation)
+              .to(endRotation)
+              .onUpdate(({ x, y, z }) => gltf.rotation.set(x, y, z))
+              .easing(Easing.Quartic.Out)
+              .start()
+          );
+        }
       });
 
       return () => {
-        springs.forEach(spring => spring.stop());
+        springs.forEach(spring => spring?.stop());
       };
-    }, [loaded, models, showDelay]);
+    }, [loaded, animated, models, reduceMotion]);
 
     // Sync camera rotation inputs
     useMemo(() => {
-      if (!loaded) return;
+      if (!loaded || animated) return;
 
-      const startRotation = new Vector3(...controls.current.object.rotation.toArray());
-      const endRotation = new Vector3(
-        cameraRotation.x,
-        cameraRotation.y,
-        cameraRotation.z
+      const startRotation = new Vector2(...controls.current.object.rotation.toArray());
+      const endRotation = new Vector2(
+        MathUtils.degToRad(cameraRotation.x),
+        MathUtils.degToRad(cameraRotation.y)
       );
 
-      const center = new Vector3(0, 0, 0);
+      const axes = [new Vector3(-1, 0, 0), new Vector3(0, -1, 0)];
 
-      const xAxis = new Vector3(-1, 0, 0);
-      const yAxis = new Vector3(0, -1, 0);
-      const zAxis = new Vector3(0, 0, -1);
-      const axes = [xAxis, yAxis, zAxis];
+      let animation;
 
-      const deviceValue = value(controls.current.object.rotation, ({ x, y, z }) => {
-        [
-          controls.current.object.rotation.x - x,
-          controls.current.object.rotation.y - y,
-          controls.current.object.rotation.z - z,
-        ].forEach((theta, index) => {
-          const axis = axes[index];
+      if (reduceMotion) {
+        controls.current.enabled = false;
+        startRotation
+          .sub(endRotation)
+          .toArray()
+          .forEach((theta, index) => {
+            const axis = axes[index];
 
-          controls.current.object.position.sub(center);
-          controls.current.object.position.applyAxisAngle(axis, theta);
-          controls.current.object.position.add(center);
+            controls.current.object.position.applyAxisAngle(axis, theta);
+            controls.current.object.rotateOnAxis(axis, theta);
+          });
+        controls.current.enabled = true;
+      } else {
+        controls.current.enabled = false;
 
-          controls.current.object.rotateOnAxis(axis, theta);
-        });
-      });
+        animation = new Tween(startRotation)
+          .to(endRotation)
+          .onUpdate(({ x, y }) => {
+            [
+              controls.current.object.rotation.x - x,
+              controls.current.object.rotation.y - y,
+            ].forEach((theta, index) => {
+              const axis = axes[index];
 
-      const transformation = chain(
-        delay(300 + showDelay * 0.6),
-        spring({
-          from: startRotation,
-          to: endRotation,
-          stiffness: 60,
-          damping: 16,
-          restSpeed: 0.001,
-        })
-      );
-
-      const animation = transformation.start(deviceValue);
+              controls.current.object.position.applyAxisAngle(axis, theta);
+              controls.current.object.rotateOnAxis(axis, theta);
+            });
+          })
+          .easing(Easing.Quartic.Out)
+          .start()
+          .onComplete(() => (controls.current.enabled = true));
+      }
 
       return () => {
-        animation.stop();
+        animation?.stop();
       };
-    }, [loaded, cameraRotation, showDelay]);
+    }, [loaded, animated, cameraRotation.x, cameraRotation.y, reduceMotion]);
 
     // Sync device color inputs
     useEffect(() => {
       if (!loaded) return;
 
       models.forEach(({ color }, index) => {
-        const model = modelGroup.current.children[index];
+        const gltf = scene.current.getObjectByName(`model-${index}`);
 
-        model.traverse(async node => {
-          if (node.material && node.name !== MeshType.Screen) {
-            node.material.color = new Color(color);
-            node.material.color.convertSRGBToLinear();
+        const currentColor = new Color(color);
+        currentColor.convertSRGBToLinear();
+
+        gltf.traverse(node => {
+          if (node.isMesh && node.name !== MeshType.Screen) {
+            node.material.color = currentColor;
           }
         });
       });
@@ -341,9 +352,9 @@ const Model = forwardRef(
       if (!loaded) return;
 
       models.forEach(({ texture }, index) => {
-        const model = modelGroup.current.getObjectByName(`model-${index}`);
+        const gltf = scene.current.getObjectByName(`model-${index}`);
 
-        model.traverse(async node => {
+        gltf.traverse(async node => {
           if (node.name === MeshType.Screen) {
             const image = await textureLoader.current.loadAsync(texture);
             await applyScreenTexture(image, node);
@@ -372,16 +383,14 @@ const Model = forwardRef(
       };
     }, []);
 
-    // Auto-update if dampened
     useEffect(() => {
-      const animate = () => {
-        if (controls.current.enableDamping) controls.current.update();
-
-        renderFrame();
-      };
-
       if (!reduceMotion) {
-        renderer.current.setAnimationLoop(animate);
+        renderer.current.setAnimationLoop(time => {
+          update(time);
+          controls.current.update();
+
+          renderFrame();
+        });
       }
 
       return () => {
@@ -392,10 +401,8 @@ const Model = forwardRef(
     return (
       <div
         className={classNames('model', { 'model--loaded': loaded }, className)}
-        style={{ '--delay': numToMs(showDelay), ...style }}
         ref={container}
-        role="img"
-        aria-label={alt}
+        style={{ '--delay': numToMs(showDelay), ...style }}
         {...rest}
       >
         <canvas className="model__canvas" ref={canvas} />
@@ -437,23 +444,16 @@ function getModelAnimation({
 
     gltf.scene.position.set(...startPosition.toArray());
 
-    const modelValue = value(gltf.scene.position, ({ x, y, z }) => {
-      gltf.scene.position.set(x, y, z);
-      renderFrame();
-    });
-
-    const animation = chain(
-      delay(100 * index + showDelay * 0.6),
-      spring({
-        from: startPosition,
-        to: endPosition,
-        stiffness: 60,
-        damping: 16,
-        restSpeed: 0.001,
+    const animation = new Tween(startPosition)
+      .to(endPosition)
+      .delay(100 * index + showDelay * 0.6)
+      .onUpdate(({ x, y, z }) => {
+        gltf.scene.position.set(x, y, z);
+        renderFrame();
       })
-    );
+      .easing(Easing.Quartic.Out);
 
-    return { animation, modelValue };
+    return animation;
   }
 
   // Laptop open animation
@@ -465,23 +465,16 @@ function getModelAnimation({
     gltf.scene.position.set(...positionVector.toArray());
     frameNode.rotation.set(...startRotation.toArray());
 
-    const modelValue = value(frameNode.rotation, ({ x, y, z }) => {
-      frameNode.rotation.set(x, y, z);
-      renderFrame();
-    });
-
-    const animation = chain(
-      delay(300 * index + showDelay + 200),
-      spring({
-        from: startRotation,
-        to: endRotation,
-        stiffness: 50,
-        damping: 14,
-        restSpeed: 0.001,
+    const animation = new Tween(startRotation)
+      .to(endRotation)
+      .delay(300 * index + showDelay + 200)
+      .onUpdate(({ x, y, z }) => {
+        frameNode.rotation.set(x, y, z);
+        renderFrame();
       })
-    );
+      .easing(Easing.Quartic.Out);
 
-    return { animation, modelValue };
+    return animation;
   }
 }
 

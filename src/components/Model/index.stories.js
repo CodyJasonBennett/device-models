@@ -10,13 +10,7 @@ const ModelWrapper = props => {
 
   return (
     <StoryContainer padding={0}>
-      <Model
-        animated
-        ref={canvas}
-        style={modelStyle}
-        controls={{ enableDamping: true }}
-        {...props}
-      />
+      <Model animated ref={canvas} style={modelStyle} {...props} />
     </StoryContainer>
   );
 };
@@ -31,12 +25,12 @@ export const phone = () => (
     alt="Phone Models"
     models={[
       {
-        ...deviceModels.iphone11,
+        ...deviceModels['iPhone 11'],
         position: { x: -1.2, y: -0.4, z: 0.1 },
         rotation: { x: -0.4, y: 0.4, z: 0.2 },
       },
       {
-        ...deviceModels.iphone11,
+        ...deviceModels['iPhone 11'],
         position: { x: 0.6, y: 0.4, z: 1.2 },
         rotation: { x: 0, y: -0.6, z: -0.2 },
       },
@@ -45,5 +39,5 @@ export const phone = () => (
 );
 
 export const laptop = () => (
-  <ModelWrapper alt="Laptop Model" models={[deviceModels.macbookPro]} />
+  <ModelWrapper alt="Laptop Model" models={[deviceModels['Macbook Pro']]} />
 );

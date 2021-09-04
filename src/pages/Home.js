@@ -21,12 +21,12 @@ const Home = () => (
       alt="Phone models"
       models={[
         {
-          ...deviceModels.iphone11,
+          ...deviceModels['iPhone 11'],
           position: { x: -1.2, y: -0.4, z: 0.1 },
           rotation: { x: -0.4, y: 0.4, z: 0.2 },
         },
         {
-          ...deviceModels.iphone12,
+          ...deviceModels['iPhone 12'],
           position: { x: 0.6, y: 0.4, z: 1.2 },
           rotation: { x: 0, y: -0.6, z: -0.2 },
         },

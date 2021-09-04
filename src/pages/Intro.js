@@ -103,17 +103,16 @@ const Intro = ({
                   ref={canvas}
                   showDelay={msToNum(tokens.base.durationXL)}
                   className="intro__models"
-                  cameraPosition={{ x: 0, y: 0, z: isMobile ? 9 : 10, ...cameraPosition }}
                   controls={{
                     enableZoom: false,
                     enablePan: false,
                     enableDamping: true,
                     maxPolarAngle: Math.PI / 2,
                     minPolarAngle: Math.PI / 2,
-                    ...controls,
                   }}
                   alt={alt}
                   models={models}
+                  cameraPosition={{ x: 0, y: 0, z: isMobile ? 9 : 10 }}
                 />
               </Suspense>
             )}

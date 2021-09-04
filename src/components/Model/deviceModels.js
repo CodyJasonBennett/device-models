@@ -47,7 +47,7 @@ export const ModelAnimationType = {
 };
 
 const models = {
-  iphone11: {
+  'iPhone 11': {
     name: 'iPhone 11',
     url: iphone11,
     width: 375,
@@ -65,7 +65,7 @@ const models = {
       iphone11TiltedRight,
     ],
   },
-  iphone12: {
+  'iPhone 12': {
     name: 'iPhone 12',
     url: iphone12,
     width: 530,
@@ -83,7 +83,7 @@ const models = {
       iphone12TiltedRight,
     ],
   },
-  macbookPro: {
+  'Macbook Pro': {
     name: 'Macbook Pro',
     url: macbookPro,
     width: 1280,
@@ -101,7 +101,7 @@ const models = {
       macbookProTiltedRight,
     ],
   },
-  iMac2021: {
+  'iMac 2021': {
     name: 'iMac 2021',
     url: iMac2021,
     width: 2240,
@@ -119,7 +119,7 @@ const models = {
       iMac2021TiltedRight,
     ],
   },
-  iMacPro: {
+  'iMac Pro': {
     name: 'iMac Pro',
     url: iMacPro,
     width: 2560,
@@ -137,7 +137,7 @@ const models = {
       iMacProTiltedRight,
     ],
   },
-  iPadAir: {
+  'iPad Air': {
     name: 'iPad Air',
     url: iPadAir,
     width: 820,
