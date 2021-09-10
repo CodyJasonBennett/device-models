@@ -6,7 +6,7 @@ import './index.css';
 
 const Scene = ({
   clay,
-  model = 'Google Pixel 6',
+  model = 'iPhone 11',
   environment = 'studio',
   controls,
   ...rest
@@ -22,7 +22,7 @@ const Scene = ({
     <Model clay={clay} model={model} {...rest} />
     {!clay && <Environment preset={environment} />}
     {clay && <ambientLight intensity={1.2} />}
-    <Controls minDistance={4} maxDistance={16} dampingFactor={0.1} {...controls} />
+    <Controls minDistance={2} maxDistance={8} dampingFactor={0.1} {...controls} />
   </Canvas>
 );
 

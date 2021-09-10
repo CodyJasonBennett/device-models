@@ -64,11 +64,8 @@ figma.ui.onmessage = async ({ type, name, width, height, blob }) => {
       figma.off('selectionchange', sendSelection);
       return figma.closePlugin();
     }
-    case 'export': {
-      const pixelRatio = 4;
-
-      return figma.ui.postMessage({ type: 'save-canvas-image', value: pixelRatio });
-    }
+    case 'export':
+      return figma.ui.postMessage({ type: 'save-canvas-image' });
     default:
       throw new Error();
   }

@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Color,
   MeshStandardMaterial,
   MeshBasicMaterial,
   sRGBEncoding,
-  LinearFilter,
+  Vector3,
+  MathUtils,
 } from 'three';
-import { useThree } from '@react-three/fiber';
+import { Tween, Easing, update } from '@tweenjs/tween.js';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
+import { usePrefersReducedMotion } from 'hooks';
 import deviceModels from './deviceModels';
 
 const modelColor = new Color();
@@ -20,7 +23,7 @@ const Model = ({
   model,
   selection,
   color = '#FFFFFF',
-  setRequestExportFrame,
+  modelRotation,
   ...rest
 }) => {
   const targetModel = deviceModels[model];
@@ -28,6 +31,37 @@ const Model = ({
   const gltf = useGLTF(url);
   const texture = useTexture(targetModel?.texture || selection);
   const { gl, scene, camera } = useThree();
+  const ref = useRef();
+  const reduceMotion = usePrefersReducedMotion();
+
+  useFrame(() => update(performance.now()));
+
+  useEffect(() => {
+    let animation;
+
+    const model = ref.current;
+
+    const startRotation = new Vector3(...model.rotation.toArray());
+    const endRotation = new Vector3(
+      MathUtils.degToRad(Number(modelRotation.x)),
+      MathUtils.degToRad(Number(modelRotation.y)),
+      MathUtils.degToRad(Number(modelRotation.z))
+    );
+
+    if (reduceMotion) {
+      model.rotation.set(...endRotation.toArray());
+    } else {
+      animation = new Tween(startRotation)
+        .to(endRotation)
+        .onUpdate(({ x, y, z }) => model.rotation.set(x, y, z))
+        .easing(Easing.Quartic.Out)
+        .start();
+    }
+
+    return () => {
+      animation?.stop();
+    };
+  }, [reduceMotion, modelRotation.x, modelRotation.y, modelRotation.z]);
 
   useEffect(() => {
     if (!clay) return;
@@ -64,11 +98,8 @@ const Model = ({
 
   useEffect(() => {
     texture.encoding = sRGBEncoding;
-    texture.minFilter = LinearFilter;
-    texture.magFilter = LinearFilter;
     texture.flipY = false;
     texture.anisotropy = gl.capabilities.getMaxAnisotropy();
-    texture.generateMipmaps = false;
 
     // Decode the texture to prevent jank on first render
     gl.initTexture(texture);
@@ -83,12 +114,18 @@ const Model = ({
   }, [gltf.scene, texture, gl]);
 
   useEffect(() => {
-    if (!setRequestExportFrame) return;
-
     const handleExport = exportQuality => {
       const pixelRatio = gl.getPixelRatio();
 
-      gl.setPixelRatio(exportQuality);
+      const exportRatio = {
+        Low: 2,
+        Medium: 4,
+        High: 8,
+      }[exportQuality];
+
+      console.log(exportQuality, exportRatio);
+
+      gl.setPixelRatio(exportRatio);
       gl.render(scene, camera);
       gl.setPixelRatio(pixelRatio);
       const render = gl.domElement.toDataURL('image/png', 1);
@@ -96,14 +133,18 @@ const Model = ({
       return render;
     };
 
-    setRequestExportFrame(handleExport);
+    window.export = handleExport;
 
     return () => {
-      setRequestExportFrame(null);
+      window.export = null;
     };
-  }, [setRequestExportFrame, gl, scene, camera, model]);
+  }, [gl, scene, camera, model]);
 
-  return <primitive object={gltf.scene} {...rest} />;
+  return (
+    <group ref={ref}>
+      <primitive object={gltf.scene} {...rest} />
+    </group>
+  );
 };
 
 export default Model;

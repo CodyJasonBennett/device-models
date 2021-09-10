@@ -1,4 +1,12 @@
-import { useRef, useState, Fragment, useEffect, Suspense, useMemo } from 'react';
+import {
+  useRef,
+  useState,
+  Fragment,
+  useEffect,
+  Suspense,
+  useMemo,
+  useCallback,
+} from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
 import ThemeProvider from 'components/ThemeProvider';
@@ -9,10 +17,17 @@ import Scene from 'components/Scene';
 import Dropdown from 'components/Dropdown';
 import Input from 'components/Input';
 import Button from 'components/Button';
+import {
+  Option,
+  OptionMenuHeader,
+  OptionMenuItem,
+  OptionMenuDivider,
+} from 'components/Option';
 import { getImage, getImageBlob } from 'utils/image';
 import { reflow } from 'utils/transition';
 import deviceModels from 'components/Scene/deviceModels';
-import presets from './presets';
+import presets from 'data/presets';
+import colors from 'data/colors';
 import './index.css';
 
 const Preset = ({ label, children, ...rest }) => {
@@ -40,14 +55,20 @@ const Preset = ({ label, children, ...rest }) => {
 };
 
 const Plugin = () => {
-  const [modelId, setModelId] = useState('Google Pixel 6');
+  const [modelId, setModelId] = useState('iPhone 11');
   const [presetId, setPresetId] = useState(0);
   const [modelRotation, setModelRotation] = useState(presets[presetId].modelRotation);
   const [cameraRotation, setCameraRotation] = useState(presets[presetId].cameraRotation);
   const [color, setColor] = useState('#FFFFFF');
   const [selection, setSelection] = useState();
-  const [requestOutputFrame, setRequestOutputFrame] = useState();
-  const [exportQuality] = useState(4);
+  const [exportQuality, setExportQuality] = useState('Medium');
+
+  useEffect(() => {
+    const { modelRotation, cameraRotation } = presets[presetId];
+
+    setModelRotation(modelRotation);
+    setCameraRotation(cameraRotation);
+  }, [presetId]);
 
   const modelSettings = useMemo(
     () => ({
@@ -56,7 +77,6 @@ const Plugin = () => {
       selection,
       color,
       modelRotation,
-      setRequestOutputFrame,
       controls: {
         cameraRotation,
         onUpdate: setCameraRotation,
@@ -87,11 +107,14 @@ const Plugin = () => {
           );
         }
         case 'save-canvas-image': {
-          const render = requestOutputFrame?.(exportQuality);
+          const render = window.export?.(exportQuality);
+          console.log(window.export, exportQuality, render);
           if (!render) return;
 
           const { width, height } = await getImage(render);
           const blob = getImageBlob(render);
+
+          console.log('rendered', blob);
 
           return parent.postMessage(
             {
@@ -110,7 +133,36 @@ const Plugin = () => {
           throw new Error();
       }
     };
-  }, [requestOutputFrame, exportQuality, modelId]);
+  }, [exportQuality, modelId]);
+
+  const createEmptyFrame = useCallback(
+    event => {
+      event.preventDefault();
+
+      const { name, width, height } = deviceModels[modelId];
+
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: 'create-empty-frame',
+            name,
+            width,
+            height,
+          },
+        },
+        '*'
+      );
+    },
+    [modelId]
+  );
+
+  const saveCanvasImage = event => {
+    event.preventDefault();
+
+    console.log('export requested');
+
+    parent.postMessage({ pluginMessage: { type: 'export' } }, '*');
+  };
 
   return (
     <ThemeProvider inline>
@@ -163,7 +215,11 @@ const Plugin = () => {
                       setPresetId(index);
                     }}
                   >
-                    <img className="sidebar__device-image" alt={label} src={undefined} />
+                    <img
+                      className="sidebar__device-image"
+                      alt={label}
+                      src={deviceModels[modelId].renders[index]}
+                    />
                   </Preset>
                 ))}
               </div>
@@ -180,7 +236,7 @@ const Plugin = () => {
                   aria-describedby="deviceRotation"
                   value={modelRotation.x}
                   onChange={event =>
-                    setModelRotation({ ...modelRotation, x: Number(event.target.value) })
+                    setModelRotation({ ...modelRotation, x: event.target.value })
                   }
                 />
                 <Input
@@ -190,7 +246,7 @@ const Plugin = () => {
                   aria-describedby="deviceRotation"
                   value={modelRotation.y}
                   onChange={event =>
-                    setModelRotation({ ...modelRotation, y: Number(event.target.value) })
+                    setModelRotation({ ...modelRotation, y: event.target.value })
                   }
                 />
                 <Input
@@ -200,7 +256,7 @@ const Plugin = () => {
                   aria-describedby="deviceRotation"
                   value={modelRotation.z}
                   onChange={event =>
-                    setModelRotation({ ...modelRotation, z: Number(event.target.value) })
+                    setModelRotation({ ...modelRotation, z: event.target.value })
                   }
                 />
               </div>
@@ -243,28 +299,69 @@ const Plugin = () => {
                 <label className="input__label" id="color-label" htmlFor="color-input">
                   Model Color
                 </label>
-                <div className="dropdown">
+                <div className="input__content">
+                  {false && (
+                    <Option
+                      as="button"
+                      className="input__color-swatch"
+                      aria-label="Choose color style"
+                      style={{ backgroundColor: color }}
+                    >
+                      <OptionMenuHeader>Kaleidoscope Colors</OptionMenuHeader>
+                      {Object.entries(colors).map(([key, value]) => (
+                        <OptionMenuItem
+                          key={`kaleidoscope-${key}`}
+                          selected={color === value}
+                          onClick={() => setColor(value)}
+                        >
+                          <span
+                            className="input__color-swatch"
+                            style={{ backgroundColor: value }}
+                          />
+                          <span>{key}</span>
+                        </OptionMenuItem>
+                      ))}
+                      <OptionMenuDivider />
+                      <OptionMenuHeader>Document Colors</OptionMenuHeader>
+                    </Option>
+                  )}
                   <button
-                    aria-haspopup={false}
-                    aria-expanded={false}
-                    className="dropdown__button input__color-swatch"
+                    className="input__color-swatch"
                     aria-label="Choose color style"
                     style={{ backgroundColor: color }}
                   />
+                  <input
+                    className="input__element"
+                    id="color-input"
+                    aria-labelledby="color-label"
+                    type="text"
+                    value={color}
+                    onChange={event => setColor(event.target.value)}
+                  />
                 </div>
-                <input
-                  className="input__element"
-                  id="color-input"
-                  aria-labelledby="color-label"
-                  type="text"
-                  value={color}
-                  onChange={event => setColor(event.target.value)}
-                />
               </div>
             </div>
             <div className="sidebar__actions">
-              <Button>Create Empty Frame</Button>
-              <Button primary>Save as Image</Button>
+              <Button onClick={createEmptyFrame}>Create Empty Frame</Button>
+              <div className="sidebar__export">
+                <Button primary onClick={saveCanvasImage}>
+                  Save as Image
+                </Button>
+                <div className="sidebar__export-config">
+                  <Option grey iconOnly icon="settings" aria-label="Export Quality">
+                    <OptionMenuHeader>Export Quality</OptionMenuHeader>
+                    {['Low', 'Medium', 'High'].map(quality => (
+                      <OptionMenuItem
+                        key={`export-quality-${quality}`}
+                        selected={exportQuality === quality}
+                        onClick={() => setExportQuality(quality)}
+                      >
+                        {quality}
+                      </OptionMenuItem>
+                    ))}
+                  </Option>
+                </div>
+              </div>
             </div>
           </div>
         </div>

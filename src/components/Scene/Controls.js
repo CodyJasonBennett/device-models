@@ -54,7 +54,7 @@ const Controls = ({ cameraRotation, onUpdate, ...rest }) => {
       transition.current = false;
     };
 
-    const handleFilter = () => {
+    const handleUpdate = () => {
       timeout = null;
       transition.current = true;
 
@@ -68,7 +68,7 @@ const Controls = ({ cameraRotation, onUpdate, ...rest }) => {
     };
 
     clearTimeout(timeout);
-    timeout = setTimeout(handleFilter, 250);
+    timeout = setTimeout(handleUpdate, 250);
 
     return () => {
       controls.removeEventListener('sleep', onSleep);
@@ -86,8 +86,6 @@ const Controls = ({ cameraRotation, onUpdate, ...rest }) => {
       x: Math.round(MathUtils.radToDeg(controls.polarAngle) % 360),
       y: Math.round(MathUtils.radToDeg(controls.azimuthAngle) % 360),
     };
-
-    console.log(cameraRotation);
 
     animating.current = true;
 

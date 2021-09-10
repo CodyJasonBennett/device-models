@@ -187,3 +187,9 @@ button {
   height: 100%;
   flex: 1 1 auto;
 }
+
+.sidebar__export {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
