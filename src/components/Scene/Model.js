@@ -30,7 +30,7 @@ const Model = ({
   const url = targetModel?.url || model;
   const gltf = useGLTF(url);
   const texture = useTexture(targetModel?.texture || selection);
-  const { gl, scene, camera } = useThree();
+  const { gl } = useThree();
   const ref = useRef();
   const reduceMotion = usePrefersReducedMotion();
 
@@ -113,38 +113,7 @@ const Model = ({
     });
   }, [gltf.scene, texture, gl]);
 
-  useEffect(() => {
-    const handleExport = exportQuality => {
-      const pixelRatio = gl.getPixelRatio();
-
-      const exportRatio = {
-        Low: 2,
-        Medium: 4,
-        High: 8,
-      }[exportQuality];
-
-      console.log(exportQuality, exportRatio);
-
-      gl.setPixelRatio(exportRatio);
-      gl.render(scene, camera);
-      gl.setPixelRatio(pixelRatio);
-      const render = gl.domElement.toDataURL('image/png', 1);
-
-      return render;
-    };
-
-    window.export = handleExport;
-
-    return () => {
-      window.export = null;
-    };
-  }, [gl, scene, camera, model]);
-
-  return (
-    <group ref={ref}>
-      <primitive object={gltf.scene} {...rest} />
-    </group>
-  );
+  return <primitive ref={ref} object={gltf.scene} {...rest} />;
 };
 
 export default Model;

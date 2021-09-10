@@ -8,15 +8,15 @@ import { reflow } from 'utils/transition';
 import { blurOnMouseUp } from 'utils/focus';
 import './index.css';
 
-export const OptionMenuDivider = () => <div class="option-menu__divider"></div>;
+export const OptionMenuDivider = () => <div className="option-menu__divider"></div>;
 
 export const OptionMenuHeader = ({ children }) => (
-  <div class="option-menu__header">{children}</div>
+  <div className="option-menu__header">{children}</div>
 );
 
 export const OptionMenuItem = ({ selected = false, children, ...rest }) => (
   <button
-    class="option-menu__menu-item"
+    className="option-menu__menu-item"
     role="menuitemradio"
     aria-checked={selected}
     tabIndex={-1}
