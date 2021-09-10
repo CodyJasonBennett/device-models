@@ -1,15 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import {
   Color,
   MeshStandardMaterial,
   MeshBasicMaterial,
   sRGBEncoding,
-  Vector3,
   MathUtils,
 } from 'three';
-import { Tween, Easing, update } from '@tweenjs/tween.js';
-import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import { useSpring, animated } from '@react-spring/three';
 import { usePrefersReducedMotion } from 'hooks';
 import deviceModels from './deviceModels';
 
@@ -31,37 +30,15 @@ const Model = ({
   const gltf = useGLTF(url);
   const texture = useTexture(targetModel?.texture || selection);
   const { gl } = useThree();
-  const ref = useRef();
   const reduceMotion = usePrefersReducedMotion();
-
-  useFrame(() => update(performance.now()));
-
-  useEffect(() => {
-    let animation;
-
-    const model = ref.current;
-
-    const startRotation = new Vector3(...model.rotation.toArray());
-    const endRotation = new Vector3(
+  const { rotation } = useSpring({
+    immediate: reduceMotion,
+    rotation: [
       MathUtils.degToRad(Number(modelRotation.x)),
       MathUtils.degToRad(Number(modelRotation.y)),
-      MathUtils.degToRad(Number(modelRotation.z))
-    );
-
-    if (reduceMotion) {
-      model.rotation.set(...endRotation.toArray());
-    } else {
-      animation = new Tween(startRotation)
-        .to(endRotation)
-        .onUpdate(({ x, y, z }) => model.rotation.set(x, y, z))
-        .easing(Easing.Quartic.Out)
-        .start();
-    }
-
-    return () => {
-      animation?.stop();
-    };
-  }, [reduceMotion, modelRotation.x, modelRotation.y, modelRotation.z]);
+      MathUtils.degToRad(Number(modelRotation.z)),
+    ],
+  });
 
   useEffect(() => {
     if (!clay) return;
@@ -113,7 +90,7 @@ const Model = ({
     });
   }, [gltf.scene, texture, gl]);
 
-  return <primitive ref={ref} object={gltf.scene} {...rest} />;
+  return <animated.primitive rotation={rotation} object={gltf.scene} {...rest} />;
 };
 
 export default Model;
