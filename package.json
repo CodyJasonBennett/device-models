@@ -22,7 +22,7 @@
     "enzyme-adapter-react-16": "^1.15.5",
     "html-webpack-inline-source-plugin": "1.0.0-beta.2",
     "html-webpack-plugin": "^4.0.0-alpha",
-    "prettier": "^2.3.2",
+    "prettier": "^2.4.0",
     "react-scripts": "4.0.3",
     "react-snap": "1.23.0",
     "source-map-explorer": "^2.5.2",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@react-spring/three": "^9.2.4",
-    "@react-three/drei": "^7.6.1",
+    "@react-three/drei": "^7.7.0",
     "@react-three/fiber": "^7.0.6",
     "camera-controls": "^1.31.0",
     "classnames": "^2.3.1",
