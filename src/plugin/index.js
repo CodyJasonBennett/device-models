@@ -1,57 +1,33 @@
-import {
-  createContext,
-  useContext,
-  useReducer,
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  Fragment,
-  Suspense,
-  useMemo,
-} from 'react';
+import { useRef, useState, Fragment, useEffect, Suspense, useMemo } from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
 import ThemeProvider from 'components/ThemeProvider';
 import { SwitchTransition, Transition } from 'react-transition-group';
 import Tooltip from 'components/Tooltip';
-import Model from 'components/Model';
 import Spinner from 'components/Spinner';
+import Scene from 'components/Scene';
 import Dropdown from 'components/Dropdown';
 import Input from 'components/Input';
 import Button from 'components/Button';
 import { getImage, getImageBlob } from 'utils/image';
 import { reflow } from 'utils/transition';
-import { initialState, reducer } from 'plugin/reducer';
-import deviceModels from 'components/Model/deviceModels';
+import deviceModels from 'components/Scene/deviceModels';
 import presets from './presets';
 import './index.css';
 
-export const PluginContext = createContext({});
-
-const Preset = ({ index, label, children, ...rest }) => {
-  const { dispatch, selectedPresetId } = useContext(PluginContext);
+const Preset = ({ label, children, ...rest }) => {
   const presetRef = useRef();
   const [isHovered, setIsHovered] = useState(false);
-
-  const onClick = event => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    dispatch({ type: 'setSelectedPresetId', value: index });
-  };
 
   return (
     <Fragment>
       <button
         ref={presetRef}
         className="sidebar__device-button"
-        aria-pressed={selectedPresetId === index}
         onMouseOver={() => setIsHovered(true)}
         onFocus={() => setIsHovered(true)}
         onMouseOut={() => setIsHovered(false)}
         onBlur={() => setIsHovered(false)}
-        onClick={onClick}
         {...rest}
       >
         {children}
@@ -64,33 +40,30 @@ const Preset = ({ index, label, children, ...rest }) => {
 };
 
 const Plugin = () => {
-  const canvas = useRef();
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const {
-    selectedModelId,
-    selection,
-    color,
-    modelRotation,
-    cameraRotation,
-    exportQuality,
-  } = state;
+  const [modelId, setModelId] = useState('Google Pixel 6');
+  const [presetId, setPresetId] = useState(0);
+  const [modelRotation, setModelRotation] = useState(presets[presetId].modelRotation);
+  const [cameraRotation, setCameraRotation] = useState(presets[presetId].cameraRotation);
+  const [color, setColor] = useState('#FFFFFF');
+  const [selection, setSelection] = useState();
+  const [requestOutputFrame, setRequestOutputFrame] = useState();
+  const [exportQuality] = useState(4);
 
-  const modelSettings = useMemo(() => {
-    const currentDevice = deviceModels[selectedModelId];
-
-    return {
-      models: [
-        {
-          ...currentDevice,
-          texture: selection || currentDevice.texture,
-          color,
-          position: { x: 0, y: 0, z: 0 },
-          rotation: modelRotation,
-        },
-      ],
-      cameraRotation,
-    };
-  }, [selectedModelId, selection, color, modelRotation, cameraRotation]);
+  const modelSettings = useMemo(
+    () => ({
+      clay: false,
+      model: modelId,
+      selection,
+      color,
+      modelRotation,
+      setRequestOutputFrame,
+      controls: {
+        cameraRotation,
+        onUpdate: setCameraRotation,
+      },
+    }),
+    [modelId, selection, color, modelRotation, cameraRotation]
+  );
 
   useEffect(() => {
     window.onmessage = async event => {
@@ -98,24 +71,25 @@ const Plugin = () => {
 
       switch (type) {
         case 'selection': {
-          if (!value) return dispatch({ type: 'setSelection', value: null });
+          if (!value) return setSelection(null);
 
           const blob = new Blob([value], { type: 'image/png' });
 
-          const selection = await Promise.resolve(
+          return await Promise.resolve(
             new Promise(resolve => {
               const reader = new FileReader();
               reader.readAsDataURL(blob);
-              reader.onloadend = () => resolve(reader.result);
+              reader.onloadend = () => {
+                setSelection(reader.result);
+                resolve(reader.result);
+              };
             })
           );
-
-          return dispatch({ type: 'setSelection', value: selection });
         }
         case 'save-canvas-image': {
-          const render = canvas.current.export(exportQuality);
+          const render = requestOutputFrame?.(exportQuality);
+          if (!render) return;
 
-          const { name } = deviceModels[selectedModelId];
           const { width, height } = await getImage(render);
           const blob = getImageBlob(render);
 
@@ -123,7 +97,7 @@ const Plugin = () => {
             {
               pluginMessage: {
                 type: 'save-canvas-image',
-                name,
+                name: modelId,
                 width,
                 height,
                 blob,
@@ -136,207 +110,166 @@ const Plugin = () => {
           throw new Error();
       }
     };
-  }, [exportQuality, selectedModelId]);
-
-  const createEmptyFrame = useCallback(
-    event => {
-      event.preventDefault();
-
-      const { name, width, height } = deviceModels[selectedModelId];
-
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'create-empty-frame',
-            name,
-            width,
-            height,
-          },
-        },
-        '*'
-      );
-    },
-    [selectedModelId]
-  );
-
-  const saveCanvasImage = useCallback(async event => {
-    event.preventDefault();
-    parent.postMessage({ pluginMessage: { type: 'export' } }, '*');
-  }, []);
+  }, [requestOutputFrame, exportQuality, modelId]);
 
   return (
-    <PluginContext.Provider value={{ ...state, dispatch }}>
-      <ThemeProvider inline>
-        <main className="ui" tabIndex={-1}>
-          <div className="ui__layout">
-            <SwitchTransition
-              mode="out-in"
-              className="ui__viewport-wrapper"
-              component="div"
+    <ThemeProvider inline>
+      <main className="ui" tabIndex={-1}>
+        <div className="ui__layout">
+          <SwitchTransition
+            mode="out-in"
+            className="ui__viewport-wrapper"
+            component="div"
+          >
+            <Transition
+              mountOnEnter
+              unmountOnExit
+              timeout={800}
+              key={modelId}
+              onEnter={reflow}
             >
-              <Transition
-                mountOnEnter
-                unmountOnExit
-                timeout={800}
-                key={selectedModelId}
-                onEnter={reflow}
-              >
-                {status => (
-                  <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
-                    <Suspense fallback={<Spinner />}>
-                      <Model ref={canvas} {...modelSettings} />
-                    </Suspense>
-                  </div>
-                )}
-              </Transition>
-            </SwitchTransition>
-            <div className="sidebar">
-              <div className="sidebar__control">
-                <div className="sidebar__label">Device Model</div>
-                <Dropdown
-                  options={Object.keys(deviceModels)}
-                  onChange={device =>
-                    dispatch({ type: 'setSelectedModelId', value: device })
+              {status => (
+                <div className={classNames('ui__viewport', `ui__viewport--${status}`)}>
+                  <Suspense fallback={<Spinner />}>
+                    <Scene {...modelSettings} />
+                  </Suspense>
+                </div>
+              )}
+            </Transition>
+          </SwitchTransition>
+          <div className="sidebar">
+            <div className="sidebar__control">
+              <div className="sidebar__label">Device Model</div>
+              <Dropdown
+                options={Object.keys(deviceModels)}
+                onChange={key => setModelId(key)}
+              />
+            </div>
+            <div className="sidebar__control">
+              <div className="sidebar__label" id="anglePreset">
+                Angle Preset
+              </div>
+              <div className="sidebar__devices" data-scroll>
+                {presets.map(({ label }, index) => (
+                  <Preset
+                    key={`angle-preset-${index}`}
+                    label={label}
+                    aria-describedby="anglePreset"
+                    aria-pressed={presetId === index}
+                    onClick={event => {
+                      event.preventDefault();
+                      event.stopPropagation();
+
+                      setPresetId(index);
+                    }}
+                  >
+                    <img className="sidebar__device-image" alt={label} src={undefined} />
+                  </Preset>
+                ))}
+              </div>
+            </div>
+            <div className="sidebar__control">
+              <div className="sidebar__label" id="deviceRotation">
+                Device Rotation
+              </div>
+              <div className="sidebar__control-group">
+                <Input
+                  icon="rotateX"
+                  label="Rotate X"
+                  type="number"
+                  aria-describedby="deviceRotation"
+                  value={modelRotation.x}
+                  onChange={event =>
+                    setModelRotation({ ...modelRotation, x: Number(event.target.value) })
+                  }
+                />
+                <Input
+                  icon="rotateY"
+                  label="Rotate Y"
+                  type="number"
+                  aria-describedby="deviceRotation"
+                  value={modelRotation.y}
+                  onChange={event =>
+                    setModelRotation({ ...modelRotation, y: Number(event.target.value) })
+                  }
+                />
+                <Input
+                  icon="rotateZ"
+                  label="Rotate Z"
+                  type="number"
+                  aria-describedby="deviceRotation"
+                  value={modelRotation.z}
+                  onChange={event =>
+                    setModelRotation({ ...modelRotation, z: Number(event.target.value) })
                   }
                 />
               </div>
-              <div className="sidebar__control">
-                <div className="sidebar__label" id="anglePreset">
-                  Angle Preset
-                </div>
-                <div className="sidebar__devices" data-scroll>
-                  {presets.map(({ label }, index) => (
-                    <Preset
-                      key={index}
-                      index={index}
-                      label={label}
-                      aria-describedby="anglePreset"
-                    >
-                      <img
-                        className="sidebar__device-image"
-                        alt={label}
-                        src={deviceModels[selectedModelId].renders[index]}
-                      />
-                    </Preset>
-                  ))}
-                </div>
+            </div>
+            <div className="sidebar__control">
+              <div className="sidebar__label" id="cameraRotation">
+                Camera Rotation
               </div>
-              <div className="sidebar__control">
-                <div className="sidebar__label" id="deviceRotation">
-                  Device Rotation
-                </div>
-                <div className="sidebar__control-group">
-                  <Input
-                    icon="rotateX"
-                    label="Rotate X"
-                    type="number"
-                    aria-describedby="deviceRotation"
-                    defaultValue={modelRotation.x}
-                    onChange={event =>
-                      dispatch({
-                        type: 'setModelRotation',
-                        value: { ...modelRotation, x: Number(event.target.value) },
-                      })
-                    }
-                  />
-                  <Input
-                    icon="rotateY"
-                    label="Rotate Y"
-                    type="number"
-                    aria-describedby="deviceRotation"
-                    defaultValue={modelRotation.y}
-                    onChange={event =>
-                      dispatch({
-                        type: 'setModelRotation',
-                        value: { ...modelRotation, y: Number(event.target.value) },
-                      })
-                    }
-                  />
-                  <Input
-                    icon="rotateZ"
-                    label="Rotate Z"
-                    type="number"
-                    aria-describedby="deviceRotation"
-                    defaultValue={modelRotation.z}
-                    onChange={event =>
-                      dispatch({
-                        type: 'setModelRotation',
-                        value: { ...modelRotation, z: Number(event.target.value) },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="sidebar__control">
-                <div className="sidebar__label" id="cameraRotation">
-                  Camera Rotation
-                </div>
-                <div className="sidebar__control-group">
-                  <Input
-                    icon="rotateX"
-                    label="Rotate X"
-                    type="number"
-                    aria-describedby="cameraRotation"
-                    defaultValue={cameraRotation.x}
-                    onChange={event =>
-                      dispatch({
-                        type: 'setCameraRotation',
-                        value: { ...cameraRotation, x: Number(event.target.value) },
-                      })
-                    }
-                  />
-                  <Input
-                    icon="rotateY"
-                    label="Rotate Y"
-                    type="number"
-                    aria-describedby="cameraRotation"
-                    defaultValue={cameraRotation.y}
-                    onChange={event =>
-                      dispatch({
-                        type: 'setCameraRotation',
-                        value: { ...cameraRotation, y: Number(event.target.value) },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="sidebar__control">
-                <div className="input">
-                  <label className="input__label" id="color-label" htmlFor="color-input">
-                    Model Color
-                  </label>
-                  <div className="dropdown">
-                    <button
-                      aria-haspopup={false}
-                      aria-expanded={false}
-                      className="dropdown__button input__color-swatch"
-                      aria-label="Choose color style"
-                      style={{ backgroundColor: color }}
-                    />
-                  </div>
-                  <input
-                    className="input__element"
-                    id="color-input"
-                    aria-labelledby="color-label"
-                    type="text"
-                    defaultValue={color}
-                    onChange={event =>
-                      dispatch({ type: 'setColor', value: event.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="sidebar__actions">
-                <Button onClick={createEmptyFrame}>Create Empty Frame</Button>
-                <Button primary onClick={saveCanvasImage}>
-                  Save as Image
-                </Button>
+              <div className="sidebar__control-group">
+                <Input
+                  icon="rotateX"
+                  label="Rotate X"
+                  type="number"
+                  aria-describedby="cameraRotation"
+                  value={cameraRotation.x}
+                  onChange={event =>
+                    setCameraRotation({
+                      ...cameraRotation,
+                      x: event.target.value,
+                    })
+                  }
+                />
+                <Input
+                  icon="rotateY"
+                  label="Rotate Y"
+                  type="number"
+                  aria-describedby="cameraRotation"
+                  value={cameraRotation.y}
+                  onChange={event =>
+                    setCameraRotation({
+                      ...cameraRotation,
+                      y: event.target.value,
+                    })
+                  }
+                />
               </div>
             </div>
+            <div className="sidebar__control">
+              <div className="input">
+                <label className="input__label" id="color-label" htmlFor="color-input">
+                  Model Color
+                </label>
+                <div className="dropdown">
+                  <button
+                    aria-haspopup={false}
+                    aria-expanded={false}
+                    className="dropdown__button input__color-swatch"
+                    aria-label="Choose color style"
+                    style={{ backgroundColor: color }}
+                  />
+                </div>
+                <input
+                  className="input__element"
+                  id="color-input"
+                  aria-labelledby="color-label"
+                  type="text"
+                  value={color}
+                  onChange={event => setColor(event.target.value)}
+                />
+              </div>
+            </div>
+            <div className="sidebar__actions">
+              <Button>Create Empty Frame</Button>
+              <Button primary>Save as Image</Button>
+            </div>
           </div>
-        </main>
-      </ThemeProvider>
-    </PluginContext.Provider>
+        </div>
+      </main>
+    </ThemeProvider>
   );
 };
 
