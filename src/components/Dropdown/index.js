@@ -31,6 +31,23 @@ const Dropdown = ({ options, onChange }) => {
     return { top, left };
   };
 
+  const onClick = event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const handleClick = () => {
+      setExpanded(false);
+      document.removeEventListener('click', handleClick);
+    };
+
+    document.addEventListener('click', handleClick);
+    setExpanded(true);
+
+    return () => {
+      document.removeEventListener('click', handleClick);
+    };
+  };
+
   return (
     <Fragment>
       <div className="dropdown" ref={dropdown}>
@@ -39,7 +56,7 @@ const Dropdown = ({ options, onChange }) => {
           className="dropdown__button dropdown__input"
           id={dropdownId}
           aria-expanded={expanded ? 'true' : 'false'}
-          onClick={() => setExpanded(!expanded)}
+          onClick={onClick}
         >
           <span>{value}</span>
           <Icon icon="chevron" className="dropdown__input-chevron" />

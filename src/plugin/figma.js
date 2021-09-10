@@ -28,6 +28,7 @@ figma.ui.onmessage = async ({ type, name, width, height, blob }) => {
       frame.resize(width, height);
       figma.currentPage.appendChild(frame);
 
+      await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
       await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 
       const text = figma.createText();
@@ -63,11 +64,8 @@ figma.ui.onmessage = async ({ type, name, width, height, blob }) => {
       figma.off('selectionchange', sendSelection);
       return figma.closePlugin();
     }
-    case 'export': {
-      const pixelRatio = 4;
-
-      return figma.ui.postMessage({ type: 'save-canvas-image', value: pixelRatio });
-    }
+    case 'export':
+      return figma.ui.postMessage({ type: 'save-canvas-image' });
     default:
       throw new Error();
   }

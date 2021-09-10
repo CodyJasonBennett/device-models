@@ -29,7 +29,7 @@ module.exports = () => ({
         ],
       },
       {
-        test: /\.(png|jpe?g|woff2|glb)$/,
+        test: /\.(png|jpe?g|woff2|glb|gltf)$/,
         use: {
           loader: 'url-loader',
         },

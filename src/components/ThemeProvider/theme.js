@@ -21,6 +21,7 @@ const baseTokens = {
   fontStack: `Inter, ${systemFontStack}`,
   fontWeightRegular: 400,
   fontWeightMedium: 500,
+  fontWeightSemiBold: 600,
   fontWeightBold: 700,
   fontSizeH0: pxToRem(140),
   fontSizeH1: pxToRem(100),

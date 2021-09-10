@@ -1,0 +1,9 @@
+.scene {
+  opacity: 0;
+  animation: fade-in 0.4s ease forwards;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
