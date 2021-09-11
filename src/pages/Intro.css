@@ -192,13 +192,26 @@
 }
 
 .intro__models {
+  --delay: var(--durationXL);
   --backgroundSize: calc(80vh);
 
-  width: 100%;
+  align-items: center;
+  cursor: grab;
+  display: flex;
   height: 100%;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &::before {
     content: '';
+    position: relative;
+    display: block;
     width: var(--backgroundSize);
     height: var(--backgroundSize);
     background: #ffa538;

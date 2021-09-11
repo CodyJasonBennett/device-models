@@ -13,9 +13,9 @@ import { usePrefersReducedMotion } from 'hooks';
 import deviceModels from './deviceModels';
 
 const modelColor = new Color();
-const logoMaterial = new MeshStandardMaterial({ roughness: 0.4 });
-const frameMaterial = new MeshStandardMaterial({ roughness: 0.7 });
-const screenMaterial = new MeshBasicMaterial();
+const logoMaterial = new MeshStandardMaterial({ roughness: 0.4, metalness: 0.7 });
+const frameMaterial = new MeshStandardMaterial({ roughness: 0.7, metalness: 0.4 });
+const screenMaterial = new MeshBasicMaterial({ fog: false });
 
 const Model = ({
   clay = false,
@@ -44,31 +44,13 @@ const Model = ({
     if (!clay) return;
 
     modelColor.set(color);
-
-    logoMaterial.color = modelColor;
     frameMaterial.color = modelColor;
 
     gltf.scene.traverse(node => {
       if (node.material === 'Logo') {
         node.material = logoMaterial;
-
-        if (node.children?.length) {
-          node.traverse(node => {
-            if (node.isMesh) {
-              node.material = logoMaterial;
-            }
-          });
-        }
       } else if (node.name === 'Frame') {
         node.material = frameMaterial;
-
-        if (node.children?.length) {
-          node.traverse(node => {
-            if (node.isMesh) {
-              node.material = frameMaterial;
-            }
-          });
-        }
       }
     });
   }, [clay, color, gltf.scene]);

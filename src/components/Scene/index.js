@@ -56,15 +56,22 @@ const Scene = ({
       className="scene"
       frameloop="always"
       dpr={[1, 2]}
-      gl={{ preserveDrawingBuffer: true }}
-      camera={{ position: [0, 0, 6], fov: 45 }}
+      gl={{
+        antialias: true,
+        preserveDrawingBuffer: true,
+        powerPreference: 'high-performance',
+      }}
+      camera={{ position: [0, 0, 4], fov: 40 }}
       onCreated={onCreated}
     >
-      <Scale width={560} height={500} />
+      <ambientLight intensity={1} />
+      <spotLight intensity={2} angle={0.1} penumbra={1} position={[5, 2, 10]} />
+      <spotLight intensity={2} angle={0.1} penumbra={1} position={[5, 2, -10]} />
+      <fog attach="fog" args={['white', -6, 40]} />
       <Model clay={clay} model={model} {...rest} />
-      {!clay && <Environment preset={environment} />}
-      {clay && <ambientLight intensity={1.2} />}
+      <Environment preset="studio" />
       <Controls minDistance={2} maxDistance={8} dampingFactor={0.1} {...controls} />
+      <Scale width={560} height={500} />
     </Canvas>
   );
 };
