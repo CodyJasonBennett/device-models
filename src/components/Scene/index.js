@@ -44,14 +44,17 @@ const Scene = ({
       gl.physicallyCorrectLights = true;
 
       const requestOutputFrame = exportQuality => {
+        // Get export settings
         const pixelRatio = gl.getPixelRatio();
-
         const exportRatio = exportSettings[exportQuality];
 
+        // Render
         gl.setPixelRatio(exportRatio);
         gl.render(scene, camera);
-        gl.setPixelRatio(pixelRatio);
         const render = gl.domElement.toDataURL('image/png', 1);
+
+        // Cleanup
+        gl.setPixelRatio(pixelRatio);
 
         return render;
       };
@@ -68,7 +71,6 @@ const Scene = ({
       dpr={[1, 2]}
       gl={{
         antialias: true,
-        preserveDrawingBuffer: true,
         powerPreference: 'high-performance',
       }}
       camera={{
