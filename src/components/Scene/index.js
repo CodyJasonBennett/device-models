@@ -1,5 +1,5 @@
-import { useState, useLayoutEffect, useContext, useCallback } from 'react';
-import { useThree, Canvas } from '@react-three/fiber';
+import { useRef, useLayoutEffect, useContext, useCallback, Suspense } from 'react';
+import { render, unmountComponentAtNode } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import Model from './Model';
 import Controls from './Controls';
@@ -7,19 +7,27 @@ import { PluginContext } from 'plugin';
 import exportSettings from 'data/export';
 import './index.css';
 
-// react-three-fiber/issues/1394
-const Scale = ({ width, height }) => {
-  const state = useThree();
-  const [setSize] = useState(() => state.setSize);
+const Canvas = ({ children, ...props }) => {
+  const container = useRef();
+  const canvas = useRef();
 
+  // Render to canvas
   useLayoutEffect(() => {
-    setSize(width, height);
-    state.set({ setSize: () => null });
+    const Content = () => <Suspense fallback={null}>{children}</Suspense>;
+    render(<Content />, canvas.current, props);
+  }, [children, props]);
 
-    return () => state.set({ setSize });
-  }, [setSize, width, height, state]);
+  // Cleanup on unmount
+  useLayoutEffect(() => {
+    const canvasRef = canvas.current;
+    return () => unmountComponentAtNode(canvasRef);
+  }, []);
 
-  return null;
+  return (
+    <div className="scene" ref={container}>
+      <canvas className="scene__canvas" aria-hidden ref={canvas} />
+    </div>
+  );
 };
 
 const Scene = ({
@@ -33,6 +41,8 @@ const Scene = ({
 
   const onCreated = useCallback(
     ({ gl, scene, camera }) => {
+      gl.physicallyCorrectLights = true;
+
       const requestOutputFrame = exportQuality => {
         const pixelRatio = gl.getPixelRatio();
 
@@ -53,7 +63,7 @@ const Scene = ({
 
   return (
     <Canvas
-      className="scene"
+      flat={clay}
       frameloop="always"
       dpr={[1, 2]}
       gl={{
@@ -61,17 +71,21 @@ const Scene = ({
         preserveDrawingBuffer: true,
         powerPreference: 'high-performance',
       }}
-      camera={{ position: [0, 0, 4], fov: 40 }}
+      camera={{
+        fov: 36,
+        near: 0.1,
+        far: 100,
+        position: [0, 0, 8],
+      }}
+      size={{ width: 560, height: 500 }}
       onCreated={onCreated}
     >
-      <ambientLight intensity={1} />
-      <spotLight intensity={2} angle={0.1} penumbra={1} position={[5, 2, 10]} />
-      <spotLight intensity={2} angle={0.1} penumbra={1} position={[5, 2, -10]} />
-      <fog attach="fog" args={['white', -6, 40]} />
+      <ambientLight intensity={1.2} />
+      <directionalLight intensity={1.1} position={[0.5, 0, 0.866]} />
+      <directionalLight intensity={0.8} position={[-6, 2, 2]} />
       <Model clay={clay} model={model} {...rest} />
-      <Environment preset="studio" />
+      {!clay && <Environment preset="studio" />}
       <Controls minDistance={2} maxDistance={8} dampingFactor={0.1} {...controls} />
-      <Scale width={560} height={500} />
     </Canvas>
   );
 };

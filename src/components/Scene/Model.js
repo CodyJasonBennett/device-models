@@ -15,7 +15,7 @@ import deviceModels from './deviceModels';
 const modelColor = new Color();
 const logoMaterial = new MeshStandardMaterial({ roughness: 0.4, metalness: 0.7 });
 const frameMaterial = new MeshStandardMaterial({ roughness: 0.7, metalness: 0.4 });
-const screenMaterial = new MeshBasicMaterial({ fog: false });
+const screenMaterial = new MeshBasicMaterial();
 
 const Model = ({
   clay = false,

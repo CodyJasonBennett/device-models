@@ -16,12 +16,8 @@ module.exports = () => ({
       {
         test: /\.css$/,
         use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-          },
+          'style-loader',
+          'css-loader',
           {
             loader: 'postcss-loader',
             options: { postcssOptions },
@@ -30,9 +26,7 @@ module.exports = () => ({
       },
       {
         test: /\.(png|jpe?g|woff2|glb|gltf)$/,
-        use: {
-          loader: 'url-loader',
-        },
+        use: 'url-loader',
       },
     ],
   },
