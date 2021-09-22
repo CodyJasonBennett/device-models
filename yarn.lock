@@ -1246,7 +1246,7 @@
     "@babel/plugin-transform-react-jsx-source" "^7.12.1"
     "@babel/plugin-transform-react-pure-annotations" "^7.12.1"
 
-"@babel/preset-react@^7.12.10", "@babel/preset-react@^7.12.5", "@babel/preset-react@^7.14.5":
+"@babel/preset-react@^7.12.10", "@babel/preset-react@^7.12.5":
   version "7.14.5"
   resolved "https://registry.yarnpkg.com/@babel/preset-react/-/preset-react-7.14.5.tgz#0fbb769513f899c2c56f3a882fa79673c2d4ab3c"
   integrity sha512-XFxBkjyObLvBaAvkx1Ie95Iaq4S/GUEIrejyrntQ/VCMKUYvKLoyKxOBzJ2kjA3b6rC9/KL6KXfDC2GqvLiNqQ==
@@ -1906,10 +1906,10 @@
   resolved "https://registry.yarnpkg.com/@react-spring/types/-/types-9.2.4.tgz#2365ce9d761f548a9adcb2cd68714bf26765a5de"
   integrity sha512-zHUXrWO8nweUN/ISjrjqU7GgXXvoEbFca1CgiE0TY0H/dqJb3l+Rhx8ecPVNYimzFg3ZZ1/T0egpLop8SOv4aA==
 
-"@react-three/drei@^7.5.0":
-  version "7.9.0"
-  resolved "https://registry.yarnpkg.com/@react-three/drei/-/drei-7.9.0.tgz#c0ac4fe7f4cdfb7f4f0e15a5884d6ce195bce289"
-  integrity sha512-JMQnY5Vo0nQFB/2/UKDcVzrpe5GGfQF1IeKBmZS7nOfeHLDJxkoFzXWawIfC3BO0OtjNHqLzT4mlZFVEzPrrGg==
+"@react-three/drei@^7.11.0":
+  version "7.11.0"
+  resolved "https://registry.yarnpkg.com/@react-three/drei/-/drei-7.11.0.tgz#43f80a037e28fbffb2a3e89fb95ab8a35975c1bc"
+  integrity sha512-kwXpl0Flwr0PvawRea0GNu8bEJU3m5q7FQNlB0Of09ktdlRgDlR23pDLeQxk7iszOV/a8L8bJQi3/g6Q3dTjwA==
   dependencies:
     "@babel/runtime" "^7.11.2"
     blob-polyfill "^5.0.20210201"
@@ -4694,10 +4694,10 @@ camelcase@^6.0.0, camelcase@^6.1.0, camelcase@^6.2.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.2.0.tgz#924af881c9d525ac9d87f40d964e5cea982a1809"
   integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
-camera-controls@^1.32.2:
-  version "1.32.2"
-  resolved "https://registry.yarnpkg.com/camera-controls/-/camera-controls-1.32.2.tgz#05a996482f69296c15cbb712db9b504d469ac340"
-  integrity sha512-QKGQpY4KII3xRCM73wmuMAjoyAO1U5urmAWEXOFIo8ZIjoGxBY0JDVKlhkchCaYRrqTGB7ZJ+kEVof0S5We/EQ==
+camera-controls@^1.32.3:
+  version "1.32.3"
+  resolved "https://registry.yarnpkg.com/camera-controls/-/camera-controls-1.32.3.tgz#2ed5d9572aec75f82c7421392c5660ee400e050a"
+  integrity sha512-oiPerszaNnWKpZ5EWq5o/4rmRiK6FEYLJH61cjpDEMdZeQDiSH55Vq+ALeQJ+Fcf28tr474pFoFsC4zkdTYZeQ==
 
 caniuse-api@^3.0.0:
   version "3.0.0"
