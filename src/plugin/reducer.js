@@ -5,7 +5,7 @@ export const initialState = {
   cameraRotation: { x: 0, y: 0 },
   color: '#FFFFFF',
   selection: null,
-  exportQuality: 'Medium',
+  exportQuality: '4x - Medium',
   requestOutputFrame: null,
 };
 

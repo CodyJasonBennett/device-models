@@ -1,7 +1,7 @@
 const exportSettings = {
-  Low: 2,
-  Medium: 4,
-  High: 6,
+  '2x - Low': 2,
+  '4x - Medium': 4,
+  '6x - High': 6,
 };
 
 export default exportSettings;

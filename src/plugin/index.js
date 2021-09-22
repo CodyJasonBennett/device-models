@@ -31,6 +31,7 @@ import { initialState, reducer } from 'plugin/reducer';
 import deviceModels from 'components/Scene/deviceModels';
 import presets from 'data/presets';
 import colors from 'data/colors';
+import exportSettings from 'data/export';
 import './index.css';
 
 export const PluginContext = createContext({});
@@ -367,7 +368,7 @@ const Plugin = () => {
                   <div className="sidebar__export-config">
                     <Option grey iconOnly icon="settings" aria-label="Export Quality">
                       <OptionMenuHeader>Export Quality</OptionMenuHeader>
-                      {['Low', 'Medium', 'High'].map(quality => (
+                      {Object.keys(exportSettings).map(quality => (
                         <OptionMenuItem
                           key={`export-quality-${quality}`}
                           selected={exportQuality === quality}
