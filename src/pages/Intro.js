@@ -1,10 +1,10 @@
 import { Fragment, Suspense, useEffect } from 'react';
 import classNames from 'classnames';
-import { sRGBEncoding, LinearFilter, MeshBasicMaterial } from 'three';
+import { sRGBEncoding, Color } from 'three';
 import { animated, useSpring } from '@react-spring/three';
 import { Transition } from 'react-transition-group';
 import { useThree, Canvas } from '@react-three/fiber';
-import { useGLTF, useTexture, Environment, OrbitControls } from '@react-three/drei';
+import { useGLTF, useTexture, OrbitControls } from '@react-three/drei';
 import Icon from 'components/Icon';
 import Heading from 'components/Heading';
 import Text from 'components/Text';
@@ -36,25 +36,19 @@ const IntroModel = ({ model, position, delay, ...rest }) => {
   });
 
   useEffect(() => {
-    scene.traverse(async node => {
+    scene.traverse(node => {
       if (node.name === 'Screen') {
         image.encoding = sRGBEncoding;
-        image.minFilter = LinearFilter;
-        image.magFilter = LinearFilter;
         image.flipY = false;
         image.anisotropy = gl.capabilities.getMaxAnisotropy();
-        image.generateMipmaps = false;
 
         // Decode the texture to prevent jank on first render
-        await gl.initTexture(image);
+        gl.initTexture(image);
 
-        node.material = new MeshBasicMaterial({ fog: false, map: image });
-      } else if (node.name === 'Frame') {
-        node.material.roughness = 0.7;
-        node.material.metalness = 0.4;
-      } else if (node.name === 'Logo') {
-        node.material.roughness = 0.4;
-        node.material.metalness = 0.7;
+        node.material.color = new Color(0xffffff);
+        node.material.transparent = false;
+        node.material.map = image;
+        node.material.needsUpdate = true;
       }
     });
   }, [scene, image, gl]);
@@ -73,8 +67,8 @@ const IntroScene = ({ isMobile }) => {
         gl={{
           antialias: true,
           powerPreference: 'high-performance',
-          physicallyCorrectLights: true,
         }}
+        onCreated={({ gl }) => (gl.physicallyCorrectLights = true)}
       >
         <Suspense fallback={null}>
           <IntroModel
@@ -89,12 +83,10 @@ const IntroScene = ({ isMobile }) => {
             position={[0.6, 0.4, 1.2]}
             rotation={[0, -0.6, -0.2]}
           />
-          <Environment preset="studio" />
         </Suspense>
-        <ambientLight intensity={1} />
-        <spotLight intensity={2} angle={0.1} penumbra={1} position={[5, 2, 10]} />
-        <spotLight intensity={2} angle={0.1} penumbra={1} position={[5, 2, -10]} />
-        <fog attach="fog" args={['white', -6, 40]} />
+        <ambientLight intensity={1.2} />
+        <directionalLight intensity={1.1} position={[0.5, 0, 0.866]} />
+        <directionalLight intensity={0.8} position={[-6, 2, 2]} />
         <OrbitControls
           enablePan={false}
           enableZoom={false}
