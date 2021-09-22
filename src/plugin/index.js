@@ -81,7 +81,6 @@ const Plugin = () => {
 
   const modelSettings = useMemo(
     () => ({
-      clay: false,
       model: modelId,
       selection,
       color,

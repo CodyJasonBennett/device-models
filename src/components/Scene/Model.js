@@ -1,11 +1,5 @@
 import { useEffect } from 'react';
-import {
-  Color,
-  MeshStandardMaterial,
-  MeshBasicMaterial,
-  sRGBEncoding,
-  MathUtils,
-} from 'three';
+import { Color, sRGBEncoding, MathUtils } from 'three';
 import { useGLTF, useTexture } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useSpring, animated } from '@react-spring/three';
@@ -13,22 +7,12 @@ import { usePrefersReducedMotion } from 'hooks';
 import deviceModels from './deviceModels';
 
 const modelColor = new Color();
-const logoMaterial = new MeshStandardMaterial({ roughness: 0.4, metalness: 0.7 });
-const frameMaterial = new MeshStandardMaterial({ roughness: 0.7, metalness: 0.4 });
-const screenMaterial = new MeshBasicMaterial();
 
-const Model = ({
-  clay = false,
-  model,
-  selection,
-  color = '#FFFFFF',
-  modelRotation,
-  ...rest
-}) => {
+const Model = ({ model, selection, color = '#FFFFFF', modelRotation, ...rest }) => {
   const targetModel = deviceModels[model];
   const url = targetModel?.url || model;
   const gltf = useGLTF(url);
-  const texture = useTexture(targetModel?.texture || selection);
+  const texture = useTexture(selection || targetModel?.texture);
   const { gl } = useThree();
   const reduceMotion = usePrefersReducedMotion();
   const { rotation } = useSpring({
@@ -41,19 +25,14 @@ const Model = ({
   });
 
   useEffect(() => {
-    if (!clay) return;
-
     modelColor.set(color);
-    frameMaterial.color = modelColor;
 
     gltf.scene.traverse(node => {
-      if (node.material === 'Logo') {
-        node.material = logoMaterial;
-      } else if (node.name === 'Frame') {
-        node.material = frameMaterial;
+      if (node.material && node.name !== 'Screen') {
+        node.material.color = modelColor;
       }
     });
-  }, [clay, color, gltf.scene]);
+  }, [color, gltf.scene]);
 
   useEffect(() => {
     texture.encoding = sRGBEncoding;
@@ -65,12 +44,13 @@ const Model = ({
 
     gltf.scene.traverse(node => {
       if (node.name === 'Screen') {
-        node.material = screenMaterial;
+        node.material.color = new Color(0xffffff);
+        node.material.transparent = false;
         node.material.map = texture;
         node.material.needsUpdate = true;
       }
     });
-  }, [gltf.scene, texture, gl]);
+  }, [texture, gl, gltf.scene]);
 
   return <animated.primitive rotation={rotation} object={gltf.scene} {...rest} />;
 };

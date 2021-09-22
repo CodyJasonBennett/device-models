@@ -1,4 +1,4 @@
-.scene {
+.canvas-container {
   position: relative;
   display: flex;
   align-items: center;
@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-.scene__canvas {
+.canvas {
   position: absolute;
   inset: 0;
   outline: none;
@@ -15,6 +15,6 @@
   animation: fade-in 0.4s ease forwards;
 }
 
-.scene__canvas:active {
+.canvas:active {
   cursor: grabbing;
 }

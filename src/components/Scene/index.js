@@ -1,34 +1,9 @@
-import { useRef, useLayoutEffect, useContext, useCallback, Suspense } from 'react';
-import { render, unmountComponentAtNode } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
+import { useContext, useCallback } from 'react';
+import Canvas from './Canvas';
 import Model from './Model';
 import Controls from './Controls';
 import { PluginContext } from 'plugin';
 import exportSettings from 'data/export';
-import './index.css';
-
-const Canvas = ({ children, ...props }) => {
-  const container = useRef();
-  const canvas = useRef();
-
-  // Render to canvas
-  useLayoutEffect(() => {
-    const Content = () => <Suspense fallback={null}>{children}</Suspense>;
-    render(<Content />, canvas.current, props);
-  }, [children, props]);
-
-  // Cleanup on unmount
-  useLayoutEffect(() => {
-    const canvasRef = canvas.current;
-    return () => unmountComponentAtNode(canvasRef);
-  }, []);
-
-  return (
-    <div className="scene" ref={container}>
-      <canvas className="scene__canvas" aria-hidden ref={canvas} />
-    </div>
-  );
-};
 
 const Scene = ({
   clay,
@@ -66,7 +41,7 @@ const Scene = ({
 
   return (
     <Canvas
-      flat={clay}
+      flat
       frameloop="always"
       dpr={[1, 2]}
       gl={{
@@ -86,7 +61,6 @@ const Scene = ({
       <directionalLight intensity={1.1} position={[0.5, 0, 0.866]} />
       <directionalLight intensity={0.8} position={[-6, 2, 2]} />
       <Model clay={clay} model={model} {...rest} />
-      {!clay && <Environment preset="studio" />}
       <Controls minDistance={2} maxDistance={8} dampingFactor={0.1} {...controls} />
     </Canvas>
   );
